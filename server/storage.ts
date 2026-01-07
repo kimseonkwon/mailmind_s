@@ -34,7 +34,12 @@ export interface IStorage {
   
   insertEmail(email: InsertEmail): Promise<Email>;
   insertEmails(emails: InsertEmail[]): Promise<number>;
+  insertEmailsAndGetIds(emails: InsertEmail[]): Promise<Email[]>;
   getEmailById(id: number): Promise<Email | undefined>;
+  getAllEmails(limit?: number): Promise<Email[]>;
+  getUnprocessedEmails(): Promise<Email[]>;
+  updateEmailClassification(id: number, classification: string, confidence: string): Promise<void>;
+  markEmailProcessed(id: number): Promise<void>;
   
   searchEmails(query: string, topK: number): Promise<SearchResult[]>;
   
@@ -49,6 +54,7 @@ export interface IStorage {
   
   addCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
   getCalendarEvents(): Promise<CalendarEvent[]>;
+  getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]>;
 }
 
 function tokenize(query: string): string[] {
@@ -220,6 +226,65 @@ export class DatabaseStorage implements IStorage {
   async getCalendarEvents(): Promise<CalendarEvent[]> {
     return await db.select().from(calendarEvents).orderBy(desc(calendarEvents.createdAt));
   }
+
+  async getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]> {
+    return await db.select().from(calendarEvents)
+      .where(eq(calendarEvents.emailId, emailId))
+      .orderBy(desc(calendarEvents.createdAt));
+  }
+
+  async insertEmailsAndGetIds(emailsToInsert: InsertEmail[]): Promise<Email[]> {
+    if (emailsToInsert.length === 0) return [];
+    
+    const batchSize = 100;
+    const allInserted: Email[] = [];
+    
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < emailsToInsert.length; i += batchSize) {
+        const batch = emailsToInsert.slice(i, i + batchSize);
+        const inserted = await tx.insert(emails).values(batch).returning();
+        allInserted.push(...inserted);
+      }
+    });
+    
+    return allInserted;
+  }
+
+  async getAllEmails(limit: number = 1000): Promise<Email[]> {
+    return await db.select().from(emails).orderBy(desc(emails.createdAt)).limit(limit);
+  }
+
+  async getUnprocessedEmails(): Promise<Email[]> {
+    return await db.select().from(emails)
+      .where(eq(emails.isProcessed, "false"))
+      .orderBy(emails.createdAt);
+  }
+
+  async updateEmailClassification(id: number, classification: string, confidence: string): Promise<void> {
+    await db.update(emails)
+      .set({ classification, classificationConfidence: confidence })
+      .where(eq(emails.id, id));
+  }
+
+  async markEmailProcessed(id: number): Promise<void> {
+    await db.update(emails)
+      .set({ isProcessed: "true" })
+      .where(eq(emails.id, id));
+  }
 }
 
-export const storage = new DatabaseStorage();
+import { LocalSQLiteStorage } from "./local-storage";
+
+const DATA_DIR = process.env.DATA_DIR || "";
+const STORAGE_MODE = process.env.STORAGE_MODE || "postgresql";
+
+function createStorage(): IStorage {
+  if (STORAGE_MODE === "local" && DATA_DIR) {
+    console.log(`Using local SQLite storage at: ${DATA_DIR}`);
+    return new LocalSQLiteStorage(DATA_DIR);
+  }
+  console.log("Using PostgreSQL database storage");
+  return new DatabaseStorage();
+}
+
+export const storage = createStorage();

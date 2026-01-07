@@ -13,7 +13,8 @@ import {
   type EventExtractionResponse
 } from "@shared/schema";
 import { ZodError } from "zod";
-import { chatWithOllama, extractEventsFromEmail, checkOllamaConnection } from "./ollama";
+import { chatWithOllama, extractEventsFromEmail, checkOllamaConnection, classifyEmail } from "./ollama";
+import { parsePSTFromBuffer } from "./pst-parser";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -138,11 +139,22 @@ export async function registerRoutes(
         if (ext === "json") {
           const content = file.buffer.toString("utf-8");
           emailsToImport = parseEmailsFromJson(content);
-        } else if (ext === "pst" || ext === "mbox") {
+        } else if (ext === "pst") {
+          const parseResult = parsePSTFromBuffer(file.buffer, filename);
+          if (parseResult.errors.length > 0 && parseResult.emails.length === 0) {
+            res.status(400).json({
+              ok: false,
+              inserted: 0,
+              message: `PST 파일 파싱 오류: ${parseResult.errors.join(", ")}`,
+            });
+            return;
+          }
+          emailsToImport = parseResult.emails;
+        } else if (ext === "mbox") {
           res.status(400).json({
             ok: false,
             inserted: 0,
-            message: "PST/MBOX 파일은 현재 환경에서 지원되지 않습니다. JSON 형식의 이메일 파일을 사용해 주세요. 참고: readpst 도구가 필요하며 Replit 환경에서는 사용이 제한됩니다.",
+            message: "MBOX 파일은 현재 지원되지 않습니다. PST 또는 JSON 형식을 사용해 주세요.",
           });
           return;
         } else {
@@ -167,17 +179,54 @@ export async function registerRoutes(
         return;
       }
 
-      const inserted = await storage.insertEmails(emailsToImport);
+      const insertedEmails = await storage.insertEmailsAndGetIds(emailsToImport);
+      const insertedCount = insertedEmails.length;
       
       await storage.logImport({
         filename,
-        emailsImported: inserted,
+        emailsImported: insertedCount,
       });
 
-      const result: ImportResult = {
+      let classifiedCount = 0;
+      let eventsExtractedCount = 0;
+
+      const ollamaConnected = await checkOllamaConnection();
+      
+      if (ollamaConnected) {
+        for (const email of insertedEmails) {
+          try {
+            const classification = await classifyEmail(email.subject, email.body, email.sender);
+            await storage.updateEmailClassification(email.id, classification.classification, classification.confidence);
+            classifiedCount++;
+
+            const events = await extractEventsFromEmail(email.subject, email.body, email.date);
+            for (const event of events) {
+              await storage.addCalendarEvent({
+                emailId: email.id,
+                title: event.title,
+                startDate: event.startDate,
+                endDate: event.endDate || null,
+                location: event.location || null,
+                description: event.description || null,
+              });
+              eventsExtractedCount++;
+            }
+
+            await storage.markEmailProcessed(email.id);
+          } catch (err) {
+            console.error(`Error processing email ${email.id}:`, err);
+          }
+        }
+      }
+
+      const result = {
         ok: true,
-        inserted,
-        message: `${inserted}개의 이메일을 성공적으로 가져왔습니다.`,
+        inserted: insertedCount,
+        classified: classifiedCount,
+        eventsExtracted: eventsExtractedCount,
+        message: ollamaConnected 
+          ? `${insertedCount}개의 이메일을 가져왔습니다. ${classifiedCount}개 분류, ${eventsExtractedCount}개 일정 추출 완료.`
+          : `${insertedCount}개의 이메일을 가져왔습니다. AI 서버 미연결로 자동 분류/일정 추출이 건너뛰어졌습니다.`,
       };
 
       res.json(result);
@@ -296,14 +345,28 @@ export async function registerRoutes(
         content: message,
       });
 
+      const relevantEmails = await storage.searchEmails(message, 5);
+      
+      let emailContext = "";
+      if (relevantEmails.length > 0) {
+        const emailContextItems = relevantEmails.map((e, i) => 
+          `[이메일 ${i + 1}]\n제목: ${e.subject}\n발신자: ${e.sender}\n날짜: ${e.date}\n내용: ${e.body.substring(0, 300)}...`
+        );
+        emailContext = `\n\n참고할 관련 이메일들:\n${emailContextItems.join("\n\n")}`;
+      }
+
       const previousMessages = await storage.getMessages(convId);
       const ollamaMessages = previousMessages.map(m => ({
         role: m.role as "user" | "assistant" | "system",
         content: m.content,
       }));
 
+      const systemPrompt = `당신은 이메일 관리와 일정 정리를 도와주는 AI 비서입니다. 
+사용자가 업로드한 이메일 데이터를 기반으로 질문에 답변해주세요.
+한국어로 친절하게 응답해주세요.${emailContext}`;
+
       const aiResponse = await chatWithOllama([
-        { role: "system", content: "당신은 이메일 관리와 일정 정리를 도와주는 AI 비서입니다. 한국어로 친절하게 응답해주세요." },
+        { role: "system", content: systemPrompt },
         ...ollamaMessages,
       ]);
 
@@ -379,6 +442,118 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Get events error:", error);
       res.status(500).json({ error: "일정을 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.get("/api/emails", async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const classification = req.query.classification as string | undefined;
+      
+      let allEmails = await storage.getAllEmails(limit);
+      
+      if (classification && classification !== "all") {
+        allEmails = allEmails.filter(e => e.classification === classification);
+      }
+      
+      res.json(allEmails);
+    } catch (error) {
+      console.error("Get emails error:", error);
+      res.status(500).json({ error: "이메일 목록을 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/emails/:id/classify", async (req: Request, res: Response) => {
+    try {
+      const emailId = parseInt(req.params.id);
+      if (isNaN(emailId)) {
+        res.status(400).json({ error: "잘못된 이메일 ID입니다." });
+        return;
+      }
+
+      const email = await storage.getEmailById(emailId);
+      if (!email) {
+        res.status(404).json({ error: "이메일을 찾을 수 없습니다." });
+        return;
+      }
+
+      const classification = await classifyEmail(email.subject, email.body, email.sender);
+      await storage.updateEmailClassification(emailId, classification.classification, classification.confidence);
+
+      res.json({ 
+        success: true, 
+        classification: classification.classification,
+        confidence: classification.confidence 
+      });
+    } catch (error) {
+      console.error("Classification error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "분류 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.get("/api/settings/storage", async (_req: Request, res: Response) => {
+    try {
+      const mode = process.env.STORAGE_MODE || "postgresql";
+      const dataDir = process.env.DATA_DIR || "";
+      res.json({ 
+        mode, 
+        dataDir,
+        info: mode === "local" && dataDir 
+          ? `로컬 저장소 사용 중 (${dataDir})` 
+          : "PostgreSQL 데이터베이스 사용 중"
+      });
+    } catch (error) {
+      console.error("Get storage settings error:", error);
+      res.status(500).json({ error: "설정을 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/process/unprocessed", async (_req: Request, res: Response) => {
+    try {
+      const ollamaConnected = await checkOllamaConnection();
+      if (!ollamaConnected) {
+        res.status(503).json({ error: "AI 서버에 연결할 수 없습니다." });
+        return;
+      }
+
+      const unprocessed = await storage.getUnprocessedEmails();
+      let processedCount = 0;
+      let eventsCount = 0;
+
+      for (const email of unprocessed) {
+        try {
+          const classification = await classifyEmail(email.subject, email.body, email.sender);
+          await storage.updateEmailClassification(email.id, classification.classification, classification.confidence);
+
+          const events = await extractEventsFromEmail(email.subject, email.body, email.date);
+          for (const event of events) {
+            await storage.addCalendarEvent({
+              emailId: email.id,
+              title: event.title,
+              startDate: event.startDate,
+              endDate: event.endDate || null,
+              location: event.location || null,
+              description: event.description || null,
+            });
+            eventsCount++;
+          }
+
+          await storage.markEmailProcessed(email.id);
+          processedCount++;
+        } catch (err) {
+          console.error(`Error processing email ${email.id}:`, err);
+        }
+      }
+
+      res.json({
+        success: true,
+        processed: processedCount,
+        eventsExtracted: eventsCount,
+        message: `${processedCount}개 이메일 처리 완료, ${eventsCount}개 일정 추출`
+      });
+    } catch (error) {
+      console.error("Process unprocessed error:", error);
+      res.status(500).json({ error: "처리 중 오류가 발생했습니다." });
     }
   });
 

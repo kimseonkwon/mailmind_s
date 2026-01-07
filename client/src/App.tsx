@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import Home from "@/pages/home";
 import ChatPage from "@/pages/chat";
 import CalendarPage from "@/pages/calendar";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
-import { Mail, MessageCircle, Calendar } from "lucide-react";
+import { Mail, MessageCircle, Calendar, Settings } from "lucide-react";
 
 function Navigation() {
   const [location] = useLocation();
@@ -46,6 +47,16 @@ function Navigation() {
             <Calendar className="h-5 w-5" />
           </Button>
         </Link>
+        <Link href="/settings">
+          <Button 
+            variant={location === "/settings" ? "secondary" : "ghost"} 
+            size="icon"
+            className="h-12 w-12"
+            data-testid="nav-settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
     </nav>
   );
@@ -57,6 +68,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/calendar" component={CalendarPage} />
+      <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>
   );

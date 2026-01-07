@@ -11,6 +11,9 @@ export const emails = pgTable("emails", {
   body: text("body").notNull().default(""),
   importance: text("importance"),
   label: text("label"),
+  classification: text("classification"),
+  classificationConfidence: text("classification_confidence"),
+  isProcessed: text("is_processed").default("false"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -184,3 +187,34 @@ export const eventExtractionResponseSchema = z.object({
 });
 
 export type EventExtractionResponse = z.infer<typeof eventExtractionResponseSchema>;
+
+export const appSettings = pgTable("app_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAppSettingsSchema = createInsertSchema(appSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertAppSettings = z.infer<typeof insertAppSettingsSchema>;
+export type AppSettings = typeof appSettings.$inferSelect;
+
+export const emailClassificationSchema = z.enum([
+  "work", "personal", "meeting", "finance", "marketing", "support", "other"
+]);
+
+export type EmailClassificationType = z.infer<typeof emailClassificationSchema>;
+
+export const importWithProcessingResultSchema = z.object({
+  ok: z.boolean(),
+  inserted: z.number(),
+  classified: z.number(),
+  eventsExtracted: z.number(),
+  message: z.string().optional(),
+});
+
+export type ImportWithProcessingResult = z.infer<typeof importWithProcessingResultSchema>;

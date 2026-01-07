@@ -110,3 +110,75 @@ export async function getAvailableModels(): Promise<string[]> {
     return [];
   }
 }
+
+export type EmailClassification = "work" | "personal" | "meeting" | "finance" | "marketing" | "support" | "other";
+
+export interface ClassificationResult {
+  classification: EmailClassification;
+  confidence: string;
+}
+
+export async function classifyEmail(
+  subject: string,
+  body: string,
+  sender: string
+): Promise<ClassificationResult> {
+  const systemPrompt = `당신은 이메일 분류 전문가입니다. 이메일을 다음 카테고리 중 하나로 분류하세요:
+- work: 업무 관련 이메일 (프로젝트, 보고, 업무 지시 등)
+- personal: 개인적인 이메일
+- meeting: 회의 관련 이메일 (일정, 참석 요청 등)
+- finance: 재무/회계 관련 (견적, 비용, 정산 등)
+- marketing: 마케팅/홍보 이메일
+- support: 고객 지원/문의 이메일
+- other: 기타
+
+반드시 다음 JSON 형식으로만 응답하세요:
+{"classification": "카테고리", "confidence": "high/medium/low"}`;
+
+  const userPrompt = `다음 이메일을 분류해주세요:
+발신자: ${sender}
+제목: ${subject}
+내용: ${body.substring(0, 500)}`;
+
+  try {
+    const response = await chatWithOllama([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ]);
+
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0]);
+      return {
+        classification: result.classification || "other",
+        confidence: result.confidence || "medium",
+      };
+    }
+    return { classification: "other", confidence: "low" };
+  } catch (error) {
+    console.error("Classification error:", error);
+    return { classification: "other", confidence: "low" };
+  }
+}
+
+export async function chatWithEmailContext(
+  message: string,
+  emailContext: Array<{ subject: string; body: string; sender: string; date: string }>
+): Promise<string> {
+  const contextText = emailContext
+    .map((e, i) => `[이메일 ${i + 1}]\n제목: ${e.subject}\n발신자: ${e.sender}\n날짜: ${e.date}\n내용: ${e.body.substring(0, 300)}...`)
+    .join("\n\n");
+
+  const systemPrompt = `당신은 이메일 관리와 일정 정리를 도와주는 AI 비서입니다. 
+사용자가 업로드한 이메일 데이터를 기반으로 질문에 답변해주세요.
+아래는 관련 이메일 내용입니다:
+
+${contextText}
+
+이 정보를 바탕으로 사용자의 질문에 친절하게 답변해주세요.`;
+
+  return chatWithOllama([
+    { role: "system", content: systemPrompt },
+    { role: "user", content: message },
+  ]);
+}

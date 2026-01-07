@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a PST (Personal Storage Table) email search and management application with AI-powered features. It allows users to import email data from JSON files, search through emails with relevance scoring, and use an AI assistant for chat and calendar event extraction. The application is built as a full-stack TypeScript project with a React frontend and Express backend, designed for productivity-focused email data exploration.
+This is a PST (Personal Storage Table) email search and management application with AI-powered features. It allows users to import email data from PST or JSON files, search through emails with relevance scoring, and use an AI assistant for chat and calendar event extraction. The application is built as a full-stack TypeScript project with a React frontend and Express backend, designed for productivity-focused email data exploration.
 
 ## User Preferences
 
@@ -13,7 +13,7 @@ LLM Provider: Local Ollama server (default: http://localhost:11434)
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter for lightweight client-side routing (3 pages: Home, Chat, Calendar)
+- **Routing**: Wouter for lightweight client-side routing (4 pages: Home, Chat, Calendar, Settings)
 - **State Management**: TanStack React Query for server state and data fetching
 - **UI Components**: shadcn/ui component library built on Radix UI primitives
 - **Styling**: Tailwind CSS with custom CSS variables for theming (supports light/dark modes)
@@ -24,22 +24,27 @@ LLM Provider: Local Ollama server (default: http://localhost:11434)
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **API Pattern**: RESTful endpoints under `/api` prefix
-- **File Handling**: Multer for processing file uploads (up to 100MB)
+- **File Handling**: Multer for processing file uploads (up to 100MB), PST parsing via pst-extractor
 - **Database ORM**: Drizzle ORM with PostgreSQL dialect
 - **LLM Integration**: Ollama client for local Llama model (server/ollama.ts)
+- **PST Parsing**: pst-extractor library for Outlook PST file support (server/pst-parser.ts)
 - **Development**: tsx for TypeScript execution, Vite dev server integration
 
 ### Data Layer
-- **Database**: PostgreSQL (required via DATABASE_URL environment variable)
+- **Database**: PostgreSQL (default) or SQLite (local storage mode)
 - **Schema Definition**: Drizzle schema in `shared/schema.ts`
 - **Tables**:
-  - `emails`: Stores imported email data (subject, sender, date, body, importance, label)
+  - `emails`: Stores imported email data (subject, sender, date, body, importance, label, classification)
   - `importLogs`: Tracks file import history with email counts
   - `users`: User management (id, username, password)
   - `conversations`: AI chat conversations
   - `messages`: Chat messages (user/assistant roles)
   - `calendarEvents`: Extracted calendar events from emails
+  - `appSettings`: Application configuration storage
 - **Validation**: Zod schemas generated from Drizzle for type-safe API contracts
+- **Storage Modes**:
+  - PostgreSQL (default): Cloud database via DATABASE_URL
+  - Local SQLite: Set STORAGE_MODE=local and DATA_DIR=/path/to/folder
 
 ### Search Implementation
 - Token-based text search with scoring algorithm
@@ -47,9 +52,17 @@ LLM Provider: Local Ollama server (default: http://localhost:11434)
 - Returns results ordered by relevance score
 
 ### AI Features
-- **AI Chat**: Chat with local Llama model via Ollama for email assistance
-- **Calendar Event Extraction**: AI-powered extraction of dates, times, and event details from emails
+- **AI Chat (RAG)**: Chat with local Llama model via Ollama, uses uploaded emails as context for better responses
+- **Email Classification**: Automatic categorization into work, personal, meeting, finance, marketing, support, other
+- **Calendar Event Extraction**: AI-powered extraction of dates, times, and event details from emails (auto-triggered on import)
 - **Environment**: OLLAMA_BASE_URL (default: http://localhost:11434)
+
+### Auto-Processing on Import
+When emails are imported (PST or JSON), the system automatically:
+1. Parses and stores email data
+2. Classifies each email into categories (if Ollama connected)
+3. Extracts calendar events from email content (if Ollama connected)
+4. Updates the calendar view with extracted events
 
 ### Build Process
 - Frontend: Vite builds to `dist/public`

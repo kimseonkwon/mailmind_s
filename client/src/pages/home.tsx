@@ -25,7 +25,15 @@ import {
   Calendar,
   Sparkles
 } from "lucide-react";
-import type { Stats, ChatResponse, SearchResult, ImportResult, EventExtractionResponse } from "@shared/schema";
+import type { Stats, ChatResponse, SearchResult, EventExtractionResponse } from "@shared/schema";
+
+interface ExtendedImportResult {
+  ok: boolean;
+  inserted: number;
+  classified?: number;
+  eventsExtracted?: number;
+  message?: string;
+}
 
 function StatCard({ 
   title, 
@@ -359,18 +367,23 @@ export default function Home() {
           throw new Error(text || res.statusText);
         }
         
-        return res.json() as Promise<ImportResult>;
+        return res.json() as Promise<ExtendedImportResult>;
       } catch (error) {
         clearInterval(interval);
         throw error;
       }
     },
     onSuccess: (data) => {
+      let description = data.message || `${data.inserted}개의 이메일을 가져왔습니다.`;
+      if (data.classified && data.classified > 0) {
+        description = `${data.inserted}개 이메일 가져오기, ${data.classified}개 분류, ${data.eventsExtracted || 0}개 일정 추출 완료`;
+      }
       toast({
         title: "가져오기 완료",
-        description: `${data.inserted}개의 이메일을 가져왔습니다.`,
+        description,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       setUploadProgress(0);
     },
     onError: (error) => {
