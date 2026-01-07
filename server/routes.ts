@@ -2,8 +2,18 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
-import { chatRequestSchema, type ChatResponse, type ImportResult, type SearchResult } from "@shared/schema";
+import { 
+  chatRequestSchema, 
+  aiChatRequestSchema,
+  eventExtractionRequestSchema,
+  type ChatResponse, 
+  type ImportResult, 
+  type SearchResult,
+  type AiChatResponse,
+  type EventExtractionResponse
+} from "@shared/schema";
 import { ZodError } from "zod";
+import { chatWithOllama, extractEventsFromEmail, checkOllamaConnection } from "./ollama";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -226,6 +236,150 @@ export async function registerRoutes(
       ok: true,
       hint: "POST /api/import로 이메일 가져오기, /api/stats로 통계 확인, POST /api/search로 검색",
     });
+  });
+
+  app.get("/api/ollama/status", async (_req: Request, res: Response) => {
+    try {
+      const connected = await checkOllamaConnection();
+      res.json({ connected, baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434" });
+    } catch {
+      res.json({ connected: false, baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434" });
+    }
+  });
+
+  app.get("/api/conversations", async (_req: Request, res: Response) => {
+    try {
+      const conversations = await storage.getConversations();
+      res.json(conversations);
+    } catch (error) {
+      console.error("Get conversations error:", error);
+      res.status(500).json({ error: "대화 목록을 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.get("/api/conversations/:id/messages", async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      if (isNaN(conversationId)) {
+        res.status(400).json({ error: "잘못된 대화 ID입니다." });
+        return;
+      }
+      const messages = await storage.getMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Get messages error:", error);
+      res.status(500).json({ error: "메시지를 가져오는 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/ai/chat", async (req: Request, res: Response) => {
+    try {
+      const validationResult = aiChatRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(e => e.message).join(", ");
+        res.status(400).json({ error: errors || "잘못된 요청입니다." });
+        return;
+      }
+
+      const { message, conversationId } = validationResult.data;
+      
+      let convId = conversationId;
+      if (!convId) {
+        const newConv = await storage.createConversation({ title: message.slice(0, 50) });
+        convId = newConv.id;
+      }
+
+      await storage.addMessage({
+        conversationId: convId,
+        role: "user",
+        content: message,
+      });
+
+      const previousMessages = await storage.getMessages(convId);
+      const ollamaMessages = previousMessages.map(m => ({
+        role: m.role as "user" | "assistant" | "system",
+        content: m.content,
+      }));
+
+      const aiResponse = await chatWithOllama([
+        { role: "system", content: "당신은 이메일 관리와 일정 정리를 도와주는 AI 비서입니다. 한국어로 친절하게 응답해주세요." },
+        ...ollamaMessages,
+      ]);
+
+      await storage.addMessage({
+        conversationId: convId,
+        role: "assistant",
+        content: aiResponse,
+      });
+
+      const response: AiChatResponse = {
+        response: aiResponse,
+        conversationId: convId,
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("AI chat error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "AI 채팅 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.post("/api/events/extract", async (req: Request, res: Response) => {
+    try {
+      const validationResult = eventExtractionRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(e => e.message).join(", ");
+        res.status(400).json({ error: errors || "잘못된 요청입니다." });
+        return;
+      }
+
+      const { emailId } = validationResult.data;
+      const email = await storage.getEmailById(emailId);
+      
+      if (!email) {
+        res.status(404).json({ error: "이메일을 찾을 수 없습니다." });
+        return;
+      }
+
+      const extractedEvents = await extractEventsFromEmail(
+        email.subject,
+        email.body,
+        email.date
+      );
+
+      for (const event of extractedEvents) {
+        await storage.addCalendarEvent({
+          emailId: email.id,
+          title: event.title,
+          startDate: event.startDate,
+          endDate: event.endDate || null,
+          location: event.location || null,
+          description: event.description || null,
+        });
+      }
+
+      const response: EventExtractionResponse = {
+        events: extractedEvents,
+        emailId,
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("Event extraction error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "일정 추출 중 오류가 발생했습니다." });
+    }
+  });
+
+  app.get("/api/events", async (_req: Request, res: Response) => {
+    try {
+      const events = await storage.getCalendarEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Get events error:", error);
+      res.status(500).json({ error: "일정을 가져오는 중 오류가 발생했습니다." });
+    }
   });
 
   return httpServer;

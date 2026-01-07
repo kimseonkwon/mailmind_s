@@ -9,7 +9,16 @@ import {
   type Stats,
   users,
   type User,
-  type InsertUser
+  type InsertUser,
+  conversations,
+  type Conversation,
+  type InsertConversation,
+  messages,
+  type Message,
+  type InsertMessage,
+  calendarEvents,
+  type CalendarEvent,
+  type InsertCalendarEvent
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, or, ilike, desc, sql } from "drizzle-orm";
@@ -25,10 +34,21 @@ export interface IStorage {
   
   insertEmail(email: InsertEmail): Promise<Email>;
   insertEmails(emails: InsertEmail[]): Promise<number>;
+  getEmailById(id: number): Promise<Email | undefined>;
   
   searchEmails(query: string, topK: number): Promise<SearchResult[]>;
   
   logImport(log: InsertImportLog): Promise<ImportLog>;
+  
+  createConversation(conv: InsertConversation): Promise<Conversation>;
+  getConversation(id: number): Promise<Conversation | undefined>;
+  getConversations(): Promise<Conversation[]>;
+  
+  addMessage(msg: InsertMessage): Promise<Message>;
+  getMessages(conversationId: number): Promise<Message[]>;
+  
+  addCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
+  getCalendarEvents(): Promise<CalendarEvent[]>;
 }
 
 function tokenize(query: string): string[] {
@@ -157,6 +177,48 @@ export class DatabaseStorage implements IStorage {
   async logImport(log: InsertImportLog): Promise<ImportLog> {
     const [inserted] = await db.insert(importLogs).values(log).returning();
     return inserted;
+  }
+
+  async getEmailById(id: number): Promise<Email | undefined> {
+    const [email] = await db.select().from(emails).where(eq(emails.id, id));
+    return email || undefined;
+  }
+
+  async createConversation(conv: InsertConversation): Promise<Conversation> {
+    const [inserted] = await db.insert(conversations).values(conv).returning();
+    return inserted;
+  }
+
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    const [conv] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conv || undefined;
+  }
+
+  async getConversations(): Promise<Conversation[]> {
+    return await db.select().from(conversations).orderBy(desc(conversations.updatedAt));
+  }
+
+  async addMessage(msg: InsertMessage): Promise<Message> {
+    const [inserted] = await db.insert(messages).values(msg).returning();
+    await db.update(conversations)
+      .set({ updatedAt: new Date() })
+      .where(eq(conversations.id, msg.conversationId));
+    return inserted;
+  }
+
+  async getMessages(conversationId: number): Promise<Message[]> {
+    return await db.select().from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.createdAt);
+  }
+
+  async addCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent> {
+    const [inserted] = await db.insert(calendarEvents).values(event).returning();
+    return inserted;
+  }
+
+  async getCalendarEvents(): Promise<CalendarEvent[]> {
+    return await db.select().from(calendarEvents).orderBy(desc(calendarEvents.createdAt));
   }
 }
 

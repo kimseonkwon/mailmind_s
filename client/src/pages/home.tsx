@@ -21,9 +21,11 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  X
+  X,
+  Calendar,
+  Sparkles
 } from "lucide-react";
-import type { Stats, ChatResponse, SearchResult, ImportResult } from "@shared/schema";
+import type { Stats, ChatResponse, SearchResult, ImportResult, EventExtractionResponse } from "@shared/schema";
 
 function StatCard({ 
   title, 
@@ -64,12 +66,16 @@ function EmailResultCard({
   result, 
   index,
   expanded,
-  onToggle
+  onToggle,
+  onExtract,
+  isExtracting
 }: { 
   result: SearchResult; 
   index: number;
   expanded: boolean;
   onToggle: () => void;
+  onExtract: (emailId: number) => void;
+  isExtracting: boolean;
 }) {
   return (
     <Card 
@@ -110,6 +116,27 @@ function EmailResultCard({
             {expanded && result.body && (
               <div className="mt-4 p-4 bg-muted rounded-md">
                 <p className="text-sm whitespace-pre-wrap">{result.body}</p>
+              </div>
+            )}
+            {expanded && (
+              <div className="mt-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExtract(parseInt(result.mailId));
+                  }}
+                  disabled={isExtracting}
+                  data-testid={`extract-events-${index}`}
+                >
+                  {isExtracting ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-1" />
+                  )}
+                  일정 추출
+                </Button>
               </div>
             )}
           </div>
@@ -244,9 +271,49 @@ export default function Home() {
   const [expandedEmails, setExpandedEmails] = useState<Set<number>>(new Set());
   const [uploadProgress, setUploadProgress] = useState(0);
   const [searchResults, setSearchResults] = useState<ChatResponse | null>(null);
+  const [extractingEmails, setExtractingEmails] = useState<Set<number>>(new Set());
 
   const { data: stats, isLoading: statsLoading } = useQuery<Stats>({
     queryKey: ["/api/stats"],
+  });
+
+  const extractMutation = useMutation({
+    mutationFn: async (emailId: number) => {
+      setExtractingEmails(prev => new Set(prev).add(emailId));
+      const res = await apiRequest("POST", "/api/events/extract", { emailId });
+      return res.json() as Promise<EventExtractionResponse>;
+    },
+    onSuccess: (data) => {
+      setExtractingEmails(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(data.emailId);
+        return newSet;
+      });
+      if (data.events.length > 0) {
+        toast({
+          title: "일정 추출 완료",
+          description: `${data.events.length}개의 일정을 추출했습니다.`,
+        });
+      } else {
+        toast({
+          title: "일정 없음",
+          description: "이 이메일에서 일정을 찾을 수 없습니다.",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    },
+    onError: (error: Error, emailId: number) => {
+      setExtractingEmails(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(emailId);
+        return newSet;
+      });
+      toast({
+        title: "일정 추출 실패",
+        description: error.message || "일정을 추출하는 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
   });
 
   const searchMutation = useMutation({
@@ -517,6 +584,8 @@ export default function Home() {
                     index={index}
                     expanded={expandedEmails.has(index)}
                     onToggle={() => toggleEmailExpand(index)}
+                    onExtract={(emailId) => extractMutation.mutate(emailId)}
+                    isExtracting={extractingEmails.has(parseInt(result.mailId))}
                   />
                 ))}
               </div>

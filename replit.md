@@ -2,28 +2,31 @@
 
 ## Overview
 
-This is a PST (Personal Storage Table) email search and management application. It allows users to import email data from JSON files and search through emails with relevance scoring. The application is built as a full-stack TypeScript project with a React frontend and Express backend, designed for productivity-focused email data exploration.
+This is a PST (Personal Storage Table) email search and management application with AI-powered features. It allows users to import email data from JSON files, search through emails with relevance scoring, and use an AI assistant for chat and calendar event extraction. The application is built as a full-stack TypeScript project with a React frontend and Express backend, designed for productivity-focused email data exploration.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+LLM Provider: Local Ollama server (default: http://localhost:11434)
 
 ## System Architecture
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter for lightweight client-side routing
+- **Routing**: Wouter for lightweight client-side routing (3 pages: Home, Chat, Calendar)
 - **State Management**: TanStack React Query for server state and data fetching
 - **UI Components**: shadcn/ui component library built on Radix UI primitives
 - **Styling**: Tailwind CSS with custom CSS variables for theming (supports light/dark modes)
 - **Design System**: Material Design 3 principles adapted for utility-focused productivity tools
 - **Build Tool**: Vite with HMR support
+- **Navigation**: Bottom navigation bar (mobile) / Side navigation (desktop)
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **API Pattern**: RESTful endpoints under `/api` prefix
 - **File Handling**: Multer for processing file uploads (up to 100MB)
 - **Database ORM**: Drizzle ORM with PostgreSQL dialect
+- **LLM Integration**: Ollama client for local Llama model (server/ollama.ts)
 - **Development**: tsx for TypeScript execution, Vite dev server integration
 
 ### Data Layer
@@ -33,12 +36,20 @@ Preferred communication style: Simple, everyday language.
   - `emails`: Stores imported email data (subject, sender, date, body, importance, label)
   - `importLogs`: Tracks file import history with email counts
   - `users`: User management (id, username, password)
+  - `conversations`: AI chat conversations
+  - `messages`: Chat messages (user/assistant roles)
+  - `calendarEvents`: Extracted calendar events from emails
 - **Validation**: Zod schemas generated from Drizzle for type-safe API contracts
 
 ### Search Implementation
 - Token-based text search with scoring algorithm
 - Searches across subject, sender, and body fields
 - Returns results ordered by relevance score
+
+### AI Features
+- **AI Chat**: Chat with local Llama model via Ollama for email assistance
+- **Calendar Event Extraction**: AI-powered extraction of dates, times, and event details from emails
+- **Environment**: OLLAMA_BASE_URL (default: http://localhost:11434)
 
 ### Build Process
 - Frontend: Vite builds to `dist/public`
