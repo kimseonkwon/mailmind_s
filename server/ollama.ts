@@ -91,6 +91,7 @@ ${emailBody}
 
     const jsonMatch = response.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
+      console.log("[Event Extraction] No JSON array found in response");
       return [];
     }
 
@@ -98,14 +99,20 @@ ${emailBody}
     
     // 유효성 검사: title과 startDate가 비어있거나 없는 이벤트 필터링
     const validEvents = Array.isArray(events) 
-      ? events.filter(e => 
-          e.title && 
-          e.title.trim() !== '' && 
-          e.startDate && 
-          e.startDate.trim() !== ''
-        )
+      ? events.filter(e => {
+          const hasTitle = e.title && typeof e.title === 'string' && e.title.trim().length > 0;
+          const hasDate = e.startDate && typeof e.startDate === 'string' && e.startDate.trim().length > 0;
+          
+          if (!hasTitle || !hasDate) {
+            console.log(`[Event Extraction] Filtered invalid event - Title: "${e.title}", Date: "${e.startDate}"`);
+            return false;
+          }
+          
+          return true;
+        })
       : [];
     
+    console.log(`[Event Extraction] Extracted ${validEvents.length} valid events from ${Array.isArray(events) ? events.length : 0} total`);
     return validEvents;
   } catch (error) {
     console.error("Event extraction error:", error);
