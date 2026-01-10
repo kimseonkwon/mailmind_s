@@ -1,0 +1,702 @@
+[
+  {
+    "subject": "H-1234호선 블록 조립 작업 지시",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-06 09:00:00",
+    "body": "H-1234호선 중앙블록 조립 작업을 다음과 같이 지시합니다.\n\n작업 내용을 확인하시고 진행 바랍니다.\n투입 인원: 용접공 15명",
+    "attachments": []
+  },
+  {
+    "subject": "월간 생산 실적 보고서 제출 요청",
+    "sender": "관리부 <admin@shipyard.com>",
+    "date": "2025-01-06 10:00:00",
+    "body": "1월 생산 실적 보고서를 1월 10일까지 제출해 주시기 바랍니다.\n\n각 팀별로 작성하여 제출 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "안전 점검 실시 요청",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-06 11:00:00",
+    "body": "이번 주 금요일까지 전 공장 안전 점검을 실시해 주시기 바랍니다.\n\n점검 결과를 보고서로 작성해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "자재 발주 협조 요청",
+    "sender": "자재팀 <material@shipyard.com>",
+    "date": "2025-01-06 14:00:00",
+    "body": "S-5678호선용 강재 발주 건에 대해 협조 부탁드립니다.\n\n필요 수량과 납기일을 확인해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "품질 개선 활동 참여 요청",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-06 15:00:00",
+    "body": "이번 달 품질 개선 활동에 적극 참여 부탁드립니다.\n\n개선 아이디어를 제출해 주시기 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "생산 일정 조정 협의 요청",
+    "sender": "계획팀 <planning@shipyard.com>",
+    "date": "2025-01-07 09:00:00",
+    "body": "H-9999호선 생산 일정 조정이 필요합니다.\n\n협의 후 조정된 일정을 회신 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "도면 검토 요청",
+    "sender": "설계팀 <design@shipyard.com>",
+    "date": "2025-01-07 10:00:00",
+    "body": "변경된 도면에 대한 검토를 요청드립니다.\n\n검토 후 의견을 회신해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "작업 지연 사유 보고 요청",
+    "sender": "관리부 <admin@shipyard.com>",
+    "date": "2025-01-07 11:00:00",
+    "body": "현재 진행 중인 블록 조립 작업 지연 사유를 보고해 주시기 바랍니다.\n\n금일 중으로 제출 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "인력 지원 요청",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-07 14:00:00",
+    "body": "긴급 작업 투입을 위해 용접공 5명 지원을 요청드립니다.\n\n가능 여부를 확인해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "교육 이수 확인 요청",
+    "sender": "교육팀 <training@shipyard.com>",
+    "date": "2025-01-07 15:00:00",
+    "body": "안전 교육 이수 현황을 확인하여 제출해 주시기 바랍니다.\n\n미이수자 명단도 함께 제출 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "장비 점검 실시 요청",
+    "sender": "설비팀 <facility@shipyard.com>",
+    "date": "2025-01-08 09:00:00",
+    "body": "크레인 정기 점검을 실시해 주시기 바랍니다.\n\n점검 결과를 보고해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "재고 현황 파악 요청",
+    "sender": "자재팀 <material@shipyard.com>",
+    "date": "2025-01-08 10:00:00",
+    "body": "현재 강재 재고 현황을 파악하여 보고 바랍니다.\n\n부족 품목이 있으면 즉시 발주 진행하겠습니다.",
+    "attachments": []
+  },
+  {
+    "subject": "작업 진도율 보고 요청",
+    "sender": "계획팀 <planning@shipyard.com>",
+    "date": "2025-01-08 11:00:00",
+    "body": "각 블록별 작업 진도율을 보고해 주시기 바랍니다.\n\n금주 금요일까지 제출 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "용접 불량 재작업 지시",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-08 14:00:00",
+    "body": "블록 305번 용접부 재작업을 지시합니다.\n\n즉시 착수하여 완료 시 보고 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "외주 업체 선정 협조 요청",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-08 15:00:00",
+    "body": "도장 작업 외주 업체 선정에 협조 부탁드립니다.\n\n견적서 검토 후 의견 회신 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "환경 점검 실시 요청",
+    "sender": "환경팀 <env@shipyard.com>",
+    "date": "2025-01-09 09:00:00",
+    "body": "폐기물 처리 상태를 점검하여 보고해 주시기 바랍니다.\n\n환경 규정 준수 여부를 확인해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "야간 작업 인력 배치 요청",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-09 10:00:00",
+    "body": "납기 준수를 위해 야간 작업이 필요합니다.\n\n투입 가능 인력을 확인해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "시설 보수 요청",
+    "sender": "설비팀 <facility@shipyard.com>",
+    "date": "2025-01-09 11:00:00",
+    "body": "제2공장 환기 시설 보수가 필요합니다.\n\n점검 후 보수 일정을 협의 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "협력업체 평가 참여 요청",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-09 14:00:00",
+    "body": "협력업체 품질 평가에 참여 부탁드립니다.\n\n평가표를 작성하여 제출해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "비상 대응 훈련 참가 요청",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-09 15:00:00",
+    "body": "화재 대응 훈련에 전 직원 참가 바랍니다.\n\n참가 인원을 확인하여 제출해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "주간 생산 회의",
+    "sender": "생산팀장 <prod.manager@shipyard.com>",
+    "date": "2025-01-05 09:00:00",
+    "body": "주간 생산 회의를 다음과 같이 개최합니다.\n\n일시: 1월 8일 오전 10시\n장소: 본관 3층 대회의실\n참석 대상: 각 팀장",
+    "attachments": []
+  },
+  {
+    "subject": "안전 교육 참석 안내",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-05 10:00:00",
+    "body": "정기 안전 교육을 실시합니다.\n\n일시: 1월 10일 오후 2시\n장소: 안전교육센터\n필수 참석 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "품질 개선 회의",
+    "sender": "품질팀장 <qa.manager@shipyard.com>",
+    "date": "2025-01-05 11:00:00",
+    "body": "품질 개선 회의를 개최합니다.\n\n일시: 1월 9일 오후 3시\n장소: 품질관리실\n안건: 용접 불량률 저감 방안",
+    "attachments": []
+  },
+  {
+    "subject": "S-5678호선 진수식 일정",
+    "sender": "건조팀 <build@shipyard.com>",
+    "date": "2025-01-05 14:00:00",
+    "body": "S-5678호선 진수식을 개최합니다.\n\n일시: 2월 10일 오전 10시\n장소: 제1도크\n참석 여부를 회신 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "협력업체 간담회",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-05 15:00:00",
+    "body": "협력업체 간담회를 개최합니다.\n\n일시: 1월 12일 오후 1시\n장소: 본관 2층 회의실",
+    "attachments": []
+  },
+  {
+    "subject": "H-1234호선 검사 일정 협의",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-06 09:00:00",
+    "body": "선주사 중간 검사 일정 협의 회의를 개최합니다.\n\n일시: 1월 15일 오전 9시\n장소: 품질관리실",
+    "attachments": []
+  },
+  {
+    "subject": "설계 변경 검토 회의",
+    "sender": "설계팀장 <design.mgr@shipyard.com>",
+    "date": "2025-01-06 10:00:00",
+    "body": "긴급 설계 변경 검토 회의를 개최합니다.\n\n일시: 오늘 오후 4시\n장소: 설계실\n필수 참석 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "월례 안전 회의",
+    "sender": "안전관리부장 <safety.director@shipyard.com>",
+    "date": "2025-01-06 11:00:00",
+    "body": "월례 안전 회의를 개최합니다.\n\n일시: 1월 20일 오전 10시\n장소: 본관 5층 대회의실",
+    "attachments": []
+  },
+  {
+    "subject": "생산 계획 조정 회의",
+    "sender": "계획팀 <planning@shipyard.com>",
+    "date": "2025-01-06 14:00:00",
+    "body": "생산 계획 조정을 위한 회의를 개최합니다.\n\n일시: 1월 11일 오후 2시\n장소: 계획실",
+    "attachments": []
+  },
+  {
+    "subject": "용접 기술 교육 참석 안내",
+    "sender": "교육팀 <training@shipyard.com>",
+    "date": "2025-01-06 15:00:00",
+    "body": "고급 용접 기술 교육을 실시합니다.\n\n일시: 1월 13일 ~ 15일 (3일간)\n장소: 기술교육센터",
+    "attachments": []
+  },
+  {
+    "subject": "도크 입거 전 점검 회의",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-07 09:00:00",
+    "body": "도크 입거 전 점검 회의를 개최합니다.\n\n일시: 1월 14일 오전 11시\n장소: 제1도크 현장",
+    "attachments": []
+  },
+  {
+    "subject": "자재 수급 현황 회의",
+    "sender": "자재팀장 <material.mgr@shipyard.com>",
+    "date": "2025-01-07 10:00:00",
+    "body": "자재 수급 현황 점검 회의를 개최합니다.\n\n일시: 1월 16일 오후 3시\n장소: 자재창고 사무실",
+    "attachments": []
+  },
+  {
+    "subject": "환경 안전 교육",
+    "sender": "환경팀 <env@shipyard.com>",
+    "date": "2025-01-07 11:00:00",
+    "body": "환경 안전 교육을 실시합니다.\n\n일시: 1월 17일 오후 1시\n장소: 본관 4층 교육실",
+    "attachments": []
+  },
+  {
+    "subject": "L-3456호선 인도 준비 회의",
+    "sender": "인도팀 <delivery@shipyard.com>",
+    "date": "2025-01-07 14:00:00",
+    "body": "선박 인도 준비 회의를 개최합니다.\n\n일시: 1월 18일 오전 10시\n장소: 본관 3층 회의실",
+    "attachments": []
+  },
+  {
+    "subject": "시운전 준비 상황 점검 회의",
+    "sender": "시운전팀 <trial@shipyard.com>",
+    "date": "2025-01-07 15:00:00",
+    "body": "시운전 준비 상황 점검 회의를 개최합니다.\n\n일시: 1월 19일 오후 2시\n장소: 본관 3층",
+    "attachments": []
+  },
+  {
+    "subject": "긴급 품질 회의",
+    "sender": "품질팀장 <qa.manager@shipyard.com>",
+    "date": "2025-01-08 09:00:00",
+    "body": "용접 불량 건에 대한 긴급 회의를 개최합니다.\n\n일시: 오늘 오후 3시\n장소: 현장",
+    "attachments": []
+  },
+  {
+    "subject": "발주 계획 검토 회의",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-08 10:00:00",
+    "body": "2025년 상반기 발주 계획 검토 회의를 개최합니다.\n\n일시: 1월 22일 오전 9시\n장소: 구매팀 회의실",
+    "attachments": []
+  },
+  {
+    "subject": "IT 시스템 교육",
+    "sender": "IT팀 <it@shipyard.com>",
+    "date": "2025-01-08 11:00:00",
+    "body": "신규 ERP 시스템 사용자 교육을 실시합니다.\n\n일시: 1월 21일 오후 2시\n장소: IT교육실",
+    "attachments": []
+  },
+  {
+    "subject": "반기 경영 회의",
+    "sender": "경영기획실 <strategy@shipyard.com>",
+    "date": "2025-01-08 14:00:00",
+    "body": "반기 경영 실적 검토 회의를 개최합니다.\n\n일시: 1월 25일 오전 10시\n장소: 본관 6층 임원 회의실",
+    "attachments": []
+  },
+  {
+    "subject": "노사 협의회",
+    "sender": "노무팀 <hr@shipyard.com>",
+    "date": "2025-01-08 15:00:00",
+    "body": "정기 노사 협의회를 개최합니다.\n\n일시: 1월 23일 오후 3시\n장소: 본관 2층 회의실",
+    "attachments": []
+  },
+  {
+    "subject": "[첨부] H-1234호선 블록 조립 도면",
+    "sender": "설계팀 <design@shipyard.com>",
+    "date": "2025-01-04 09:00:00",
+    "body": "H-1234호선 블록 조립 도면을 첨부하여 송부합니다.\n\n검토 후 의견 회신 바랍니다.",
+    "attachments": ["H1234_블록조립도.dwg", "시방서.pdf"]
+  },
+  {
+    "subject": "[첨부] 월간 생산 실적 보고서",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-04 10:00:00",
+    "body": "12월 생산 실적 보고서를 첨부합니다.\n\n확인 바랍니다.",
+    "attachments": ["생산실적_12월.xlsx"]
+  },
+  {
+    "subject": "[첨부] 안전 점검 체크리스트",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-04 11:00:00",
+    "body": "안전 점검 시 사용할 체크리스트를 첨부합니다.\n\n양식에 맞춰 작성 바랍니다.",
+    "attachments": ["안전점검_체크리스트.xlsx"]
+  },
+  {
+    "subject": "[첨부] 품질 검사 보고서",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-04 14:00:00",
+    "body": "블록 305번 품질 검사 보고서를 첨부합니다.",
+    "attachments": ["품질검사보고서_305.pdf", "사진.zip"]
+  },
+  {
+    "subject": "[첨부] 설계 변경 도면",
+    "sender": "설계팀 <design@shipyard.com>",
+    "date": "2025-01-04 15:00:00",
+    "body": "S-5678호선 설계 변경 도면을 송부합니다.\n\n총 15장의 도면이 첨부되어 있습니다.",
+    "attachments": ["변경도면.zip"]
+  },
+  {
+    "subject": "[첨부] 자재 발주서",
+    "sender": "자재팀 <material@shipyard.com>",
+    "date": "2025-01-05 09:00:00",
+    "body": "강재 발주서를 첨부하여 송부합니다.\n\n확인 후 승인 바랍니다.",
+    "attachments": ["발주서_강재.xlsx"]
+  },
+  {
+    "subject": "[첨부] 용접 절차서",
+    "sender": "기술팀 <tech@shipyard.com>",
+    "date": "2025-01-05 10:00:00",
+    "body": "고강도강 용접 절차서를 첨부합니다.\n\n절차에 따라 작업 진행 바랍니다.",
+    "attachments": ["용접절차서_WPS-001.pdf"]
+  },
+  {
+    "subject": "[첨부] 검사 성적서",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-05 11:00:00",
+    "body": "자재 입고 검사 성적서를 송부합니다.",
+    "attachments": ["검사성적서.pdf", "시험결과.xlsx"]
+  },
+  {
+    "subject": "[첨부] 작업 지시서",
+    "sender": "생산팀 <production@shipyard.com>",
+    "date": "2025-01-05 14:00:00",
+    "body": "이번 주 작업 지시서를 첨부합니다.\n\n일정에 맞춰 작업 진행 바랍니다.",
+    "attachments": ["작업지시서_W02.pdf"]
+  },
+  {
+    "subject": "[첨부] 교육 자료",
+    "sender": "교육팀 <training@shipyard.com>",
+    "date": "2025-01-05 15:00:00",
+    "body": "안전 교육 자료를 첨부합니다.\n\n사전 숙지 바랍니다.",
+    "attachments": ["안전교육자료.pptx", "동영상.mp4"]
+  },
+  {
+    "subject": "[첨부] 계약서",
+    "sender": "법무팀 <legal@shipyard.com>",
+    "date": "2025-01-06 09:00:00",
+    "body": "협력업체 계약서를 첨부합니다.\n\n검토 후 날인 바랍니다.",
+    "attachments": ["계약서_draft.docx"]
+  },
+  {
+    "subject": "[첨부] 설비 점검 보고서",
+    "sender": "설비팀 <facility@shipyard.com>",
+    "date": "2025-01-06 10:00:00",
+    "body": "크레인 정기 점검 보고서를 송부합니다.",
+    "attachments": ["점검보고서_크레인.pdf"]
+  },
+  {
+    "subject": "[첨부] 진도 관리표",
+    "sender": "계획팀 <planning@shipyard.com>",
+    "date": "2025-01-06 11:00:00",
+    "body": "주간 진도 관리표를 첨부합니다.\n\n진도율을 업데이트해 주세요.",
+    "attachments": ["진도관리표.xlsx"]
+  },
+  {
+    "subject": "[첨부] 사진 보고서",
+    "sender": "현장팀 <field@shipyard.com>",
+    "date": "2025-01-06 14:00:00",
+    "body": "작업 현황 사진을 첨부합니다.",
+    "attachments": ["현장사진_0106.zip"]
+  },
+  {
+    "subject": "[첨부] 견적서",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-06 15:00:00",
+    "body": "외주 작업 견적서를 첨부합니다.\n\n검토 부탁드립니다.",
+    "attachments": ["견적서_도장작업.xlsx"]
+  },
+  {
+    "subject": "[첨부] 시험 성적서",
+    "sender": "품질팀 <quality@shipyard.com>",
+    "date": "2025-01-07 09:00:00",
+    "body": "용접부 비파괴 시험 성적서를 송부합니다.",
+    "attachments": ["UT시험성적서.pdf"]
+  },
+  {
+    "subject": "[첨부] 매뉴얼",
+    "sender": "기술팀 <tech@shipyard.com>",
+    "date": "2025-01-07 10:00:00",
+    "body": "장비 사용 매뉴얼을 첨부합니다.",
+    "attachments": ["매뉴얼_크레인.pdf"]
+  },
+  {
+    "subject": "[첨부] 조직도",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-07 11:00:00",
+    "body": "2025년 조직도를 첨부합니다.",
+    "attachments": ["조직도_2025.pdf"]
+  },
+  {
+    "subject": "[첨부] 입찰 공고",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-07 14:00:00",
+    "body": "장비 구매 입찰 공고문을 첨부합니다.",
+    "attachments": ["입찰공고.pdf"]
+  },
+  {
+    "subject": "[첨부] 회의록",
+    "sender": "기획팀 <plan@shipyard.com>",
+    "date": "2025-01-07 15:00:00",
+    "body": "지난 주 경영 회의록을 첨부합니다.",
+    "attachments": ["회의록_0103.docx"]
+  },
+  {
+    "subject": "H-9999호선 강재 발주 승인 요청",
+    "sender": "자재팀 <material@shipyard.com>",
+    "date": "2025-01-03 09:00:00",
+    "body": "H-9999호선 건조용 강재 발주 승인을 요청드립니다.\n\n발주 금액: 8억 5천만원\n검토 후 승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "외주 업체 계약 승인 요청",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-03 10:00:00",
+    "body": "도장 작업 외주 계약 승인을 요청드립니다.\n\n계약 금액: 3억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "장비 구매 결재 요청",
+    "sender": "설비팀 <facility@shipyard.com>",
+    "date": "2025-01-03 11:00:00",
+    "body": "용접 로봇 구매 결재를 요청드립니다.\n\n구매 금액: 5억원\n검토 후 승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "출장 승인 요청",
+    "sender": "기술팀 <tech@shipyard.com>",
+    "date": "2025-01-03 14:00:00",
+    "body": "기술 세미나 참석을 위한 해외 출장 승인을 요청드립니다.\n\n기간: 1월 20일 ~ 25일\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "인력 충원 승인 요청",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-03 15:00:00",
+    "body": "용접공 10명 충원 승인을 요청드립니다.\n\n채용 예산: 5천만원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "설계 변경 승인 요청",
+    "sender": "설계팀 <design@shipyard.com>",
+    "date": "2025-01-04 09:00:00",
+    "body": "S-5678호선 설계 변경 승인을 요청드립니다.\n\n변경 사유: 선주사 요청\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "예산 집행 승인 요청",
+    "sender": "재무팀 <finance@shipyard.com>",
+    "date": "2025-01-04 10:00:00",
+    "body": "1분기 설비 투자 예산 집행 승인을 요청드립니다.\n\n금액: 20억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "협력업체 선정 승인 요청",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-04 11:00:00",
+    "body": "의장 작업 협력업체 선정 승인을 요청드립니다.\n\n선정 업체: (주)한국의장\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "급여 인상 승인 요청",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-04 14:00:00",
+    "body": "2025년 급여 인상안 승인을 요청드립니다.\n\n인상률: 3.5%\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "교육 예산 승인 요청",
+    "sender": "교육팀 <training@shipyard.com>",
+    "date": "2025-01-04 15:00:00",
+    "body": "상반기 교육 예산 승인을 요청드립니다.\n\n예산: 3억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "자재 긴급 발주 승인 요청",
+    "sender": "자재팀 <material@shipyard.com>",
+    "date": "2025-01-05 09:00:00",
+    "body": "부족 자재 긴급 발주 승인을 요청드립니다.\n\n발주 금액: 2억원\n긴급 승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "시설 보수 비용 승인 요청",
+    "sender": "설비팀 <facility@shipyard.com>",
+    "date": "2025-01-05 10:00:00",
+    "body": "제2공장 지붕 보수 비용 승인을 요청드립니다.\n\n보수 비용: 1억 5천만원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "연구개발 과제 승인 요청",
+    "sender": "연구소 <rnd@shipyard.com>",
+    "date": "2025-01-05 11:00:00",
+    "body": "신기술 개발 과제 승인을 요청드립니다.\n\n연구 기간: 12개월\n예산: 10억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "복리후생 개선안 승인 요청",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-05 14:00:00",
+    "body": "복리후생 개선안 승인을 요청드립니다.\n\n연간 비용: 5억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "하청 계약 연장 승인 요청",
+    "sender": "구매팀 <purchase@shipyard.com>",
+    "date": "2025-01-05 15:00:00",
+    "body": "청소 용역 계약 연장 승인을 요청드립니다.\n\n계약 기간: 1년\n계약 금액: 2억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "보안 시스템 구축 승인 요청",
+    "sender": "IT팀 <it@shipyard.com>",
+    "date": "2025-01-06 09:00:00",
+    "body": "정보 보안 시스템 구축 승인을 요청드립니다.\n\n구축 비용: 8억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "차량 구매 승인 요청",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-06 10:00:00",
+    "body": "업무용 차량 구매 승인을 요청드립니다.\n\n차량: 승합차 2대\n구매 금액: 1억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "기부금 지출 승인 요청",
+    "sender": "경영기획실 <strategy@shipyard.com>",
+    "date": "2025-01-06 11:00:00",
+    "body": "지역사회 기부금 지출 승인을 요청드립니다.\n\n기부 금액: 5천만원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "해외 법인 설립 승인 요청",
+    "sender": "경영기획실 <strategy@shipyard.com>",
+    "date": "2025-01-06 14:00:00",
+    "body": "동남아 법인 설립 승인을 요청드립니다.\n\n투자 금액: 100억원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "특허 출원 승인 요청",
+    "sender": "연구소 <rnd@shipyard.com>",
+    "date": "2025-01-06 15:00:00",
+    "body": "신기술 특허 출원 승인을 요청드립니다.\n\n출원 비용: 3천만원\n승인 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 설 연휴 안내",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-02 09:00:00",
+    "body": "2025년 설 연휴 일정을 안내드립니다.\n\n연휴 기간: 1월 28일 ~ 2월 1일 (5일간)\n안전한 명절 보내시기 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 주차장 공사 안내",
+    "sender": "시설팀 <facility@shipyard.com>",
+    "date": "2025-01-02 10:00:00",
+    "body": "주차장 확장 공사를 실시합니다.\n\n공사 기간: 1월 10일 ~ 20일\n해당 기간 주차 협조 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 정전 안내",
+    "sender": "전기팀 <electric@shipyard.com>",
+    "date": "2025-01-02 11:00:00",
+    "body": "전기 설비 점검을 위해 정전을 실시합니다.\n\n일시: 1월 7일 오후 6시 ~ 10시\n협조 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 건강검진 실시 안내",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-02 14:00:00",
+    "body": "정기 건강검진을 실시합니다.\n\n기간: 1월 15일 ~ 31일\n전 직원 필수 참여 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 식당 메뉴 변경 안내",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-02 15:00:00",
+    "body": "구내식당 메뉴를 개선합니다.\n\n시행일: 1월 8일부터\n많은 이용 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 보안 출입증 재발급 안내",
+    "sender": "보안팀 <security@shipyard.com>",
+    "date": "2025-01-03 09:00:00",
+    "body": "보안 출입증을 재발급합니다.\n\n재발급 기간: 1월 9일 ~ 13일\n분실자는 필히 재발급 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] ERP 시스템 업그레이드 안내",
+    "sender": "IT팀 <it@shipyard.com>",
+    "date": "2025-01-03 10:00:00",
+    "body": "ERP 시스템 업그레이드를 실시합니다.\n\n일시: 1월 14일 오전 2시 ~ 6시\n해당 시간 시스템 사용 불가합니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 금연 구역 확대 안내",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-03 11:00:00",
+    "body": "금연 구역을 확대 지정합니다.\n\n시행일: 2월 1일부터\n지정 장소 외 흡연 금지입니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 근무 복장 개선 안내",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-03 14:00:00",
+    "body": "근무 복장 규정을 개선합니다.\n\n적용일: 3월 1일부터\n새 유니폼이 지급될 예정입니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 통근버스 노선 변경 안내",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-03 15:00:00",
+    "body": "통근버스 노선을 변경합니다.\n\n변경일: 1월 15일부터\n새 노선표를 확인해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 환경의 날 행사 안내",
+    "sender": "환경팀 <env@shipyard.com>",
+    "date": "2025-01-04 09:00:00",
+    "body": "환경의 날 기념 행사를 개최합니다.\n\n일시: 1월 20일 오후 2시\n전 직원 참여 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 사내 동호회 모집 안내",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-04 10:00:00",
+    "body": "사내 동호회 회원을 모집합니다.\n\n모집 기간: 1월 10일 ~ 20일\n많은 참여 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 도서관 신간 도서 안내",
+    "sender": "교육팀 <training@shipyard.com>",
+    "date": "2025-01-04 11:00:00",
+    "body": "사내 도서관에 신간 도서를 비치했습니다.\n\n총 50권\n많은 이용 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 사내 체육대회 안내",
+    "sender": "총무팀 <admin@shipyard.com>",
+    "date": "2025-01-04 14:00:00",
+    "body": "사내 체육대회를 개최합니다.\n\n일시: 2월 15일 오전 9시\n장소: 사내 운동장\n많은 참여 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 휴게실 리모델링 안내",
+    "sender": "시설팀 <facility@shipyard.com>",
+    "date": "2025-01-04 15:00:00",
+    "body": "직원 휴게실을 리모델링합니다.\n\n공사 기간: 1월 25일 ~ 2월 10일\n해당 기간 임시 휴게실을 이용해 주세요.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 경조사 지원 제도 개선 안내",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-05 09:00:00",
+    "body": "경조사 지원 제도를 개선합니다.\n\n시행일: 2월 1일부터\n지원 금액이 상향 조정됩니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 사내 제안 제도 운영 안내",
+    "sender": "경영기획실 <strategy@shipyard.com>",
+    "date": "2025-01-05 10:00:00",
+    "body": "사내 제안 제도를 운영합니다.\n\n제안 기간: 연중 상시\n우수 제안에는 포상금을 지급합니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 재해 대비 훈련 실시 안내",
+    "sender": "안전팀 <safety@shipyard.com>",
+    "date": "2025-01-05 11:00:00",
+    "body": "재해 대비 훈련을 실시합니다.\n\n일시: 1월 18일 오전 10시\n전 직원 필수 참여 바랍니다.",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 장기 근속자 포상 안내",
+    "sender": "인사팀 <hr@shipyard.com>",
+    "date": "2025-01-05 14:00:00",
+    "body": "장기 근속자 포상식을 개최합니다.\n\n일시: 1월 30일 오후 3시\n대상자: 10년, 20년, 30년 근속자",
+    "attachments": []
+  },
+  {
+    "subject": "[공지] 사내 벤처 지원 사업 안내",
+    "sender": "경영기획실 <strategy@shipyard.com>",
+    "date": "2025-01-05 15:00:00",
+    "body": "사내 벤처 지원 사업을 시작합니다.\n\n신청 기간: 1월 20일 ~ 2월 20일\n창의적인 아이디어를 기다립니다.",
+    "attachments": []
+  }
+]

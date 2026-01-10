@@ -47,7 +47,9 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 0,  // 항상 최신 데이터
+      cacheTime: 0,  // 캐시 사용 안 함
+      refetchOnMount: true,  // 마운트시 항상 새로 가져옴
       retry: false,
     },
     mutations: {

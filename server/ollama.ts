@@ -223,7 +223,7 @@ export async function getAvailableModels(): Promise<string[]> {
   }
 }
 
-export type EmailClassification = "reference" | "reply_needed" | "urgent_reply" | "meeting";
+export type EmailClassification = "업무요청" | "회의" | "첨부파일" | "결재요청" | "공지";
 
 export interface ClassificationResult {
   classification: EmailClassification;
@@ -235,11 +235,20 @@ export async function classifyEmail(
   body: string,
   sender: string
 ): Promise<ClassificationResult> {
-  const systemPrompt = `당신은 이메일 분류 전문가입니다. 이메일을 다음 카테고리 중 하나로 분류하세요:
-- reference: 단순 참조 (정보 공유, 공지사항, 회신이 필요 없는 이메일)
-- reply_needed: 회신 필요 (답장이나 검토가 필요한 일반적인 이메일)
-- urgent_reply: 긴급 회신 (빠른 답장이 필요하거나 마감이 임박한 이메일)
-- meeting: 회의 (회의 일정, 참석 요청, 미팅 관련 이메일)
+  const systemPrompt = `당신은 조선소 이메일 분류 전문가입니다. 이메일을 다음 5가지 카테고리 중 하나로 분류하세요:
+
+- 업무요청: 작업 지시, 보고서 제출 요청, 협조 요청, 검토 요청 등
+- 회의: 회의 일정, 참석 요청, 회의록 등
+- 첨부파일: 첨부파일이 있는 이메일 (도면, 문서, 사진 등)
+- 결재요청: 승인 요청, 발주 승인, 계약 승인 등
+- 공지: 일반 공지사항, 안내, 정보 공유, 단순 참조
+
+**분류 우선순위:**
+1. 첨부파일이 있으면 무조건 "첨부파일"
+2. "승인", "결재", "허가" 키워드가 있으면 "결재요청"
+3. "회의", "미팅" 키워드가 있으면 "회의"
+4. "요청", "제출", "보고" 키워드가 있으면 "업무요청"
+5. 그 외는 "공지"
 
 반드시 다음 JSON 형식으로만 응답하세요:
 {"classification": "카테고리", "confidence": "high/medium/low"}`;
@@ -259,14 +268,14 @@ export async function classifyEmail(
     if (jsonMatch) {
       const result = JSON.parse(jsonMatch[0]);
       return {
-        classification: result.classification || "reference",
+        classification: result.classification || "공지",
         confidence: result.confidence || "medium",
       };
     }
-    return { classification: "reference", confidence: "low" };
+    return { classification: "공지", confidence: "low" };
   } catch (error) {
     console.error("Classification error:", error);
-    return { classification: "reference", confidence: "low" };
+    return { classification: "공지", confidence: "low" };
   }
 }
 

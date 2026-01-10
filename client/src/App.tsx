@@ -5,11 +5,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import Home from "@/pages/home";
+import InboxPage from "@/pages/inbox";
 import ChatPage from "@/pages/chat";
 import CalendarPage from "@/pages/calendar";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
-import { Mail, MessageCircle, Calendar, Settings } from "lucide-react";
+import { Mail, MessageCircle, Calendar, Settings, Inbox } from "lucide-react";
 
 function Navigation() {
   const [location] = useLocation();
@@ -22,7 +23,17 @@ function Navigation() {
             variant={location === "/" ? "secondary" : "ghost"} 
             size="icon"
             className="h-12 w-12"
-            data-testid="nav-home"
+            data-testid="nav-inbox"
+          >
+            <Inbox className="h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="/search">
+          <Button 
+            variant={location === "/search" ? "secondary" : "ghost"} 
+            size="icon"
+            className="h-12 w-12"
+            data-testid="nav-search"
           >
             <Mail className="h-5 w-5" />
           </Button>
@@ -65,7 +76,8 @@ function Navigation() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={InboxPage} />
+      <Route path="/search" component={Home} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/calendar" component={CalendarPage} />
       <Route path="/settings" component={SettingsPage} />

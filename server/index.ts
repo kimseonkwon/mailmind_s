@@ -5,6 +5,17 @@ import { createServer } from "http";
 import { setStorage } from "./storage";
 import { LocalSQLiteStorage } from "./local-storage";
 
+// 프로세스 레벨 에러 핸들링 - 서버 크래시 방지
+process.on('uncaughtException', (error) => {
+  console.error('[CRITICAL] Uncaught Exception:', error);
+  // 서버는 계속 실행됨
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
+  // 서버는 계속 실행됨
+});
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -73,8 +84,8 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    console.error(`[ERROR] ${err.message}`, err.stack);
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after

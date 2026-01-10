@@ -510,6 +510,37 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/emails/classify-all", async (_req: Request, res: Response) => {
+    try {
+      const unprocessedEmails = await storage.getUnprocessedEmails();
+      
+      let classified = 0;
+      let failed = 0;
+      
+      for (const email of unprocessedEmails) {
+        try {
+          const classification = await classifyEmail(email.subject, email.body, email.sender);
+          await storage.updateEmailClassification(email.id, classification.classification, classification.confidence);
+          await storage.markEmailProcessed(email.id);
+          classified++;
+        } catch (error) {
+          console.error(`Failed to classify email ${email.id}:`, error);
+          failed++;
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        total: unprocessedEmails.length,
+        classified,
+        failed 
+      });
+    } catch (error) {
+      console.error("Batch classification error:", error);
+      res.status(500).json({ error: "일괄 분류 중 오류가 발생했습니다." });
+    }
+  });
+
   app.get("/api/settings/storage", async (_req: Request, res: Response) => {
     try {
       const savedSettings = await storage.getAppSetting("storage_config");
