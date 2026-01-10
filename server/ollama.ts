@@ -49,29 +49,42 @@ export async function extractEventsFromEmail(
   emailDate: string
 ): Promise<ExtractedEvent[]> {
   const systemPrompt = `당신은 이메일에서 일정/이벤트 정보를 추출하는 전문가입니다.
-이메일 내용을 분석하여 **모든 일정 정보**를 빠짐없이 추출해주세요.
+이메일 내용을 분석하여 **가장 중요한 메인 일정 하나만** 추출해주세요.
 
 **추출해야 하는 일정 유형:**
 - 회의 일정 (예: "오후 3시 현장 회의", "2시에 회의")
 - 작업 일정 (예: "조립 시작", "점검 실시", "교육 진행")
-- 마감일/제출일 (예: "제출 기한: 1월 10일", "까지 회신")
-- 납기/입고 예정일 (예: "납기: 3월 15일", "입고 예정: 1월 29일")
+- 진수식/행사 일정 (가장 우선순위 높음)
 - 검사/점검 일정 (예: "검사 일시: 1월 18일 ~ 20일")
-- 진수식/행사 일정
+- 납기/입고 예정일 (예: "납기: 3월 15일", "입고 예정: 1월 29일")
+- 마감일/제출일 (예: "제출 기한: 1월 10일", "까지 회신")
 - 인도/시운전 일정
-- 기타 구체적인 날짜가 언급된 모든 일정
+- 기타 구체적인 날짜가 언급된 일정
+
+**일정 선택 우선순위 (한 이메일에서 하나만 추출):**
+1. 진수식, 시운전, 인도 등 주요 행사
+2. 회의, 점검, 검사 일정
+3. 작업 시작/완료 일정
+4. 납기/입고 예정일
+5. 마감일/제출 기한
 
 **중요 규칙:**
-1. 제목(title): 이메일 제목이나 본문의 핵심 내용을 반영 (필수)
+1. 제목(title): **반드시 구체적인 제목 작성 필수** (필수)
+   - 이메일 제목을 그대로 사용하거나, 본문의 핵심 일정 내용으로 작성
+   - 예: "H-1234호선 블록 조립", "S-5678호선 진수식", "용접 불량 현장 회의"
+   - **절대 빈 문자열("")을 사용하지 마세요**
 2. 날짜(startDate): 구체적인 날짜가 있어야 함 (필수)
+   - **반드시 YYYY-MM-DD 또는 YYYY-MM-DD HH:mm 형식으로 변환**
+   - "2025년 1월 15일" → "2025-01-15"
+   - "2025년 1월 15일 08:00" → "2025-01-15 08:00"
    - "오늘", "내일" 같은 상대적 표현은 이메일 수신 날짜 기준으로 계산
-   - 시간이 없으면 "YYYY-MM-DD" 형식만 사용
-   - 시간이 있으면 "YYYY-MM-DD HH:mm" 형식 사용
 3. 종료일(endDate): 기간이 명시된 경우만 (선택)
+   - 형식: "YYYY-MM-DD" 또는 "YYYY-MM-DD HH:mm"
 4. 장소(location): 회의실, 공장, 도크 등 장소 정보 (선택)
-5. 설명(description): 추가 세부사항 (선택)
+5. 설명(description): 마감일, 부가 일정 등 추가 정보를 여기에 포함 (선택)
+   - 예: "참석 여부 회신 마감: 2월 3일"
 6. **빈 문자열 절대 금지** - 정보가 없으면 null 사용
-7. **이메일 하나에서 여러 일정이 있으면 모두 추출**
+7. **이메일당 가장 중요한 일정 하나만 추출**
 
 반드시 다음 JSON 배열 형식으로만 응답하세요:
 [
@@ -84,9 +97,54 @@ export async function extractEventsFromEmail(
   }
 ]
 
-일정이 하나도 없으면 빈 배열 []을 반환하세요.`;
+일정이 하나도 없으면 빈 배열 []을 반환하세요.
 
-  const userPrompt = `다음 이메일에서 **모든** 일정/날짜 정보를 빠짐없이 추출해주세요:
+**학습 예시:**
+
+예시 1:
+이메일 제목: H-1234호선 블록 조립 일정 통보
+본문: "H-1234호선 중앙블록 조립 일정을 다음과 같이 통보합니다. 조립 시작: 2025년 1월 15일 08:00, 조립 완료 예정: 2025년 1월 20일 17:00, 작업 장소: 제2공장 조립장"
+응답:
+[
+  {
+    "title": "H-1234호선 블록 조립",
+    "startDate": "2025-01-15 08:00",
+    "endDate": "2025-01-20 17:00",
+    "location": "제2공장 조립장",
+    "description": null
+  }
+]
+
+예시 2:
+이메일 제목: S-5678호선 진수식 일정 안내
+본문: "S-5678호선 컨테이너선 진수식을 다음과 같이 개최합니다. 일시: 2025년 2월 10일 오전 10시, 장소: 제1도크. 진수식 후 오찬이 예정되어 있으니 참석 여부를 2월 3일까지 회신 바랍니다."
+응답:
+[
+  {
+    "title": "S-5678호선 진수식",
+    "startDate": "2025-02-10 10:00",
+    "endDate": null,
+    "location": "제1도크",
+    "description": "참석 여부 회신 마감: 2025-02-03"
+  }
+]
+
+예시 3:
+이메일 제목: 긴급: 용접 불량 발견
+본문: "블록 305번 용접부에서 불량이 발견되었습니다. 오늘 오후 3시 현장 회의 요청드립니다."
+수신 날짜: 2025-01-04 11:15:00
+응답:
+[
+  {
+    "title": "용접 불량 현장 회의",
+    "startDate": "2025-01-04 15:00",
+    "endDate": null,
+    "location": "현장",
+    "description": null
+  }
+]`;
+
+  const userPrompt = `다음 이메일에서 **가장 중요한 메인 일정 하나만** 추출해주세요:
 
 이메일 제목: ${emailSubject}
 
@@ -104,13 +162,23 @@ ${emailBody}
       "llama3.2"
     );
 
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
+    // JSON 배열 추출 (더 견고한 매칭)
+    const jsonMatch = response.match(/\[[\s\S]*?\]/);
     if (!jsonMatch) {
       console.log("[Event Extraction] No JSON array found in response");
+      console.log("[Event Extraction] Raw response:", response.substring(0, 500));
       return [];
     }
 
-    const events = JSON.parse(jsonMatch[0]);
+    let events;
+    try {
+      console.log("[Event Extraction] Parsing JSON:", jsonMatch[0].substring(0, 200));
+      events = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.log("[Event Extraction] JSON parse error:", parseError);
+      console.log("[Event Extraction] Failed JSON:", jsonMatch[0]);
+      return [];
+    }
     
     // 유효성 검사: title과 startDate가 비어있거나 없는 이벤트 필터링
     const validEvents = Array.isArray(events) 
