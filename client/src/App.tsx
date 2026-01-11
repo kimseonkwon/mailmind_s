@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import InboxPage from "@/pages/inbox";
 import ChatPage from "@/pages/chat";
 import CalendarPage from "@/pages/calendar";
+import UnextractedEmailsPage from "@/pages/unextracted-emails";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { Mail, MessageCircle, Calendar, Settings, Inbox } from "lucide-react";
@@ -85,6 +86,7 @@ function Router() {
       <Route path="/search" component={Home} />
       <Route path="/chat" component={ChatPage} />
       <Route path="/calendar" component={CalendarPage} />
+      <Route path="/calendar/unextracted" component={UnextractedEmailsPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route component={NotFound} />
     </Switch>

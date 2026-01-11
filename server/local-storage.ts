@@ -555,11 +555,11 @@ export class LocalSQLiteStorage implements IStorage {
     }));
   }
 
-  async updateCalendarEvent(
-    id: number,
-    updates: {
-      title?: string | null;
-      startDate?: string | null;
+    async updateCalendarEvent(
+      id: number,
+      updates: {
+        title?: string | null;
+        startDate?: string | null;
       endDate?: string | null;
       location?: string | null;
       description?: string | null;
@@ -624,6 +624,13 @@ export class LocalSQLiteStorage implements IStorage {
     };
   }
 
+  async deleteCalendarEvent(id: number): Promise<boolean> {
+    const result = this.db
+      .prepare("DELETE FROM calendar_events WHERE id = ?")
+      .run(id);
+    return result.changes > 0;
+  }
+
   async getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]> {
     const rows = this.db.prepare('SELECT * FROM calendar_events WHERE email_id = ? ORDER BY created_at DESC').all(emailId) as Array<{ id: number; email_id: number | null; title: string; start_date: string; end_date: string | null; location: string | null; description: string | null; created_at: string }>;
     return rows.map(row => ({
@@ -634,6 +641,34 @@ export class LocalSQLiteStorage implements IStorage {
       endDate: row.end_date,
       location: row.location,
       description: row.description,
+      createdAt: new Date(row.created_at),
+    }));
+  }
+
+  async getUnextractedEmails(): Promise<Email[]> {
+    const rows = this.db.prepare(`
+      SELECT *
+      FROM emails
+      WHERE id NOT IN (
+        SELECT DISTINCT email_id
+        FROM calendar_events
+        WHERE email_id IS NOT NULL
+      )
+      ORDER BY created_at DESC
+    `).all() as any[];
+
+    return rows.map(row => ({
+      id: row.id,
+      subject: row.subject,
+      sender: row.sender,
+      date: row.date,
+      body: row.body,
+      hasAttachment: normalizeHasAttachment(row.has_attachment),
+      importance: row.importance,
+      label: row.label,
+      classification: row.classification,
+      classificationConfidence: row.classification_confidence,
+      isProcessed: row.is_processed,
       createdAt: new Date(row.created_at),
     }));
   }

@@ -424,27 +424,27 @@ export async function registerRoutes(
         return;
       }
 
-      const extractedEvents = await extractEventsFromEmail(
-        email.subject,
-        email.body,
-        email.date
-      );
+        const extractedEvents = await extractEventsFromEmail(
+          email.subject,
+          email.body,
+          email.date
+        );
 
-      for (const event of extractedEvents) {
-        await storage.addCalendarEvent({
-          emailId: email.id,
-          title: event.title,
-          startDate: event.startDate,
-          endDate: event.endDate || null,
-          location: event.location || null,
-          description: event.description || null,
-        });
-      }
+        for (const event of extractedEvents) {
+          await storage.addCalendarEvent({
+            emailId: email.id,
+            title: event.title,
+            startDate: event.startDate,
+            endDate: event.endDate || null,
+            location: event.location || null,
+            description: event.description || null,
+          });
+        }
 
-      const response: EventExtractionResponse = {
-        events: extractedEvents,
-        emailId,
-      };
+        const response: EventExtractionResponse = {
+          events: extractedEvents,
+          emailId,
+        };
 
       res.json(response);
     } catch (error) {
@@ -523,6 +523,61 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/events/:id", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        res.status(400).json({ error: "Invalid event ID" });
+        return;
+      }
+
+      const { title, startDate, endDate, description } = req.body as {
+        title?: string | null;
+        startDate?: string | null;
+        endDate?: string | null;
+        description?: string | null;
+      };
+
+      const updated = await storage.updateCalendarEvent(eventId, {
+        title,
+        startDate,
+        endDate,
+        description,
+      });
+
+      if (!updated) {
+        res.status(404).json({ error: "Event not found" });
+        return;
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Update event error:", error);
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  app.delete("/api/events/:id", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        res.status(400).json({ error: "Invalid event ID" });
+        return;
+      }
+
+      const deleted = await storage.deleteCalendarEvent(eventId);
+      if (!deleted) {
+        res.status(404).json({ error: "Event not found" });
+        return;
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete event error:", error);
+      res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
   app.get("/api/events", async (_req: Request, res: Response) => {
     try {
       const events = await storage.getCalendarEvents();
@@ -548,6 +603,16 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Get emails error:", error);
       res.status(500).json({ error: "?대찓??紐⑸줉??媛?몄삤??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎." });
+    }
+  });
+
+  app.get("/api/emails/unextracted", async (_req: Request, res: Response) => {
+    try {
+      const emails = await storage.getUnextractedEmails();
+      res.json(emails);
+    } catch (error) {
+      console.error("Get unextracted emails error:", error);
+      res.status(500).json({ error: "미추출 이메일을 가져오는 중 오류가 발생했습니다." });
     }
   });
 

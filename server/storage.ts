@@ -64,6 +64,7 @@ export interface IStorage {
   addCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
   getCalendarEvents(): Promise<CalendarEvent[]>;
   getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]>;
+  getUnextractedEmails(): Promise<Email[]>;
   updateCalendarEvent(
     id: number,
     updates: {
@@ -75,6 +76,7 @@ export interface IStorage {
       emailId?: number | null;
     }
   ): Promise<CalendarEvent | undefined>;
+  deleteCalendarEvent(id: number): Promise<boolean>;
   
   getAppSetting(key: string): Promise<string | null>;
   setAppSetting(key: string, value: string): Promise<void>;
@@ -257,6 +259,16 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(calendarEvents.createdAt));
   }
 
+  async getUnextractedEmails(): Promise<Email[]> {
+    return await db
+      .select()
+      .from(emails)
+      .where(
+        sql`NOT EXISTS (SELECT 1 FROM ${calendarEvents} WHERE ${calendarEvents.emailId} = ${emails.id})`,
+      )
+      .orderBy(desc(emails.createdAt));
+  }
+
   async updateCalendarEvent(
     id: number,
     updates: {
@@ -285,6 +297,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(calendarEvents.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteCalendarEvent(id: number): Promise<boolean> {
+    const deleted = await db
+      .delete(calendarEvents)
+      .where(eq(calendarEvents.id, id))
+      .returning({ id: calendarEvents.id });
+    return deleted.length > 0;
   }
 
   async insertEmailsAndGetIds(emailsToInsert: InsertEmail[]): Promise<Email[]> {

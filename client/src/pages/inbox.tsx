@@ -28,8 +28,10 @@ import {
   Paperclip,
   CheckCircle,
   Bell,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -78,6 +80,11 @@ export default function InboxPage() {
   const [draftByEmailId, setDraftByEmailId] = useState<Record<number, string>>({});
   const [draftErrorByEmailId, setDraftErrorByEmailId] = useState<Record<number, string>>({});
   const [draftLoadingId, setDraftLoadingId] = useState<number | null>(null);
+  const [sectionOpen, setSectionOpen] = useState({
+    important: true,
+    reply: false,
+    other: false,
+  });
 
   const { data: allEmails } = useQuery<Email[]>({
     queryKey: ["/api/emails"],
@@ -228,6 +235,10 @@ export default function InboxPage() {
   const otherEmails = filteredEmails.filter(
     (email) => !isImportantEmail(email) && !isReplyEmail(email)
   );
+
+  const toggleSection = (key: keyof typeof sectionOpen) => {
+    setSectionOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const categoryCount = CATEGORIES.map((cat) => ({
     ...cat,
@@ -493,60 +504,96 @@ ${email.body}`;
             ) : (
               <>
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardHeader
+                    className="flex flex-row items-center justify-between space-y-0 cursor-pointer"
+                    onClick={() => toggleSection("important")}
+                  >
                     <div>
                       <CardTitle className="text-base">중요 메일</CardTitle>
                       <CardDescription>즉시 확인이 필요한 메일</CardDescription>
                     </div>
-                    <Badge variant="outline">{importantEmails.length}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{importantEmails.length}</Badge>
+                      {sectionOpen.important ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {importantEmails.length === 0 ? (
-                      <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
-                        중요 메일이 없습니다
-                      </div>
-                    ) : (
-                      importantEmails.map(renderEmailCard)
-                    )}
-                  </CardContent>
+                  {sectionOpen.important && (
+                    <CardContent className="space-y-2">
+                      {importantEmails.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
+                          중요 메일이 없습니다
+                        </div>
+                      ) : (
+                        importantEmails.map(renderEmailCard)
+                      )}
+                    </CardContent>
+                  )}
                 </Card>
 
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardHeader
+                    className="flex flex-row items-center justify-between space-y-0 cursor-pointer"
+                    onClick={() => toggleSection("reply")}
+                  >
                     <div>
                       <CardTitle className="text-base">회신 메일</CardTitle>
                       <CardDescription>답변이 필요한 메일 모음</CardDescription>
                     </div>
-                    <Badge variant="outline">{replyEmails.length}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{replyEmails.length}</Badge>
+                      {sectionOpen.reply ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {replyEmails.length === 0 ? (
-                      <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
-                        회신 메일이 없습니다
-                      </div>
-                    ) : (
-                      replyEmails.map(renderEmailCard)
-                    )}
-                  </CardContent>
+                  {sectionOpen.reply && (
+                    <CardContent className="space-y-2">
+                      {replyEmails.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
+                          회신 메일이 없습니다
+                        </div>
+                      ) : (
+                        replyEmails.map(renderEmailCard)
+                      )}
+                    </CardContent>
+                  )}
                 </Card>
 
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardHeader
+                    className="flex flex-row items-center justify-between space-y-0 cursor-pointer"
+                    onClick={() => toggleSection("other")}
+                  >
                     <div>
                       <CardTitle className="text-base">기타</CardTitle>
                       <CardDescription>중요/회신을 제외한 메일</CardDescription>
                     </div>
-                    <Badge variant="outline">{otherEmails.length}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{otherEmails.length}</Badge>
+                      {sectionOpen.other ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {otherEmails.length === 0 ? (
-                      <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
-                        기타 메일이 없습니다
-                      </div>
-                    ) : (
-                      otherEmails.map(renderEmailCard)
-                    )}
-                  </CardContent>
+                  {sectionOpen.other && (
+                    <CardContent className="space-y-2">
+                      {otherEmails.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-4 text-center border rounded-md">
+                          기타 메일이 없습니다
+                        </div>
+                      ) : (
+                        otherEmails.map(renderEmailCard)
+                      )}
+                    </CardContent>
+                  )}
                 </Card>
               </>
             )}

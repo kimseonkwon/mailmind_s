@@ -1,5 +1,7 @@
-﻿import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+﻿import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import EditEventDialog from "@/components/calendar/EditEventDialog";
 import {
   addDays,
   addMonths,
@@ -216,6 +219,10 @@ export default function CalendarPage() {
   const [view, setView] = useState<CalendarView>("month");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("calendar");
   const [activeDate, setActiveDate] = useState(() => new Date());
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [location] = useLocation();
 
   const { data: events, isLoading } = useQuery<CalendarEvent[]>({
     queryKey: ["/api/events"],
@@ -317,6 +324,97 @@ export default function CalendarPage() {
     enabled: !!selectedEvent?.emailId,
   });
 
+  useEffect(() => {
+    if (!selectedEvent) setIsEditDialogOpen(false);
+  }, [selectedEvent]);
+
+  useEffect(() => {
+    const queryStart = location.indexOf("?");
+    if (queryStart === -1) return;
+    const params = new URLSearchParams(location.slice(queryStart));
+    const tab = params.get("tab");
+    if (tab === "list") setDisplayMode("list");
+    if (tab === "calendar") setDisplayMode("calendar");
+  }, [location]);
+
+  const updateEventMutation = useMutation({
+    mutationFn: async (event: CalendarEvent) => {
+      console.log("MUTATION CALLED", event.id);
+      console.log("BEFORE FETCH");
+      const res = await window.fetch(`/api/events/${event.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: event.title,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          description: event.description,
+        }),
+      });
+      console.log("AFTER FETCH", res.status);
+
+      if (!res.ok) {
+        throw new Error("일정 수정에 실패했습니다.");
+      }
+    },
+    onSuccess: async (_data, updatedEvent) => {
+      queryClient.setQueryData<CalendarEvent[] | undefined>(
+        ["/api/events"],
+        (oldEvents) => {
+          if (!oldEvents) return oldEvents;
+          return oldEvents.map((event) =>
+            event.id === updatedEvent.id ? { ...event, ...updatedEvent } : event,
+          );
+        },
+      );
+      await queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setIsEditDialogOpen(false);
+      setSelectedEvent(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "일정 수정 실패",
+        description:
+          error instanceof Error ? error.message : "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      const res = await window.fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("일정 삭제에 실패했습니다.");
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setIsEditDialogOpen(false);
+      setSelectedEvent(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "일정 삭제 실패",
+        description:
+          error instanceof Error ? error.message : "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditSave = (updatedEvent: CalendarEvent) => {
+    console.log("EDIT SAVE CLICKED", updatedEvent);
+    updateEventMutation.mutate(updatedEvent);
+  };
+
+  const handleDeleteEvent = (event: CalendarEvent) => {
+    deleteEventMutation.mutate(event.id);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -360,6 +458,11 @@ export default function CalendarPage() {
             >
               목록
             </Button>
+            <Link href="/calendar/unextracted">
+              <Button size="sm" variant="ghost">
+                미추출 이메일
+              </Button>
+            </Link>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {Object.values(CLASSIFICATION_META).map((meta) => (
@@ -587,7 +690,15 @@ export default function CalendarPage() {
           </div>
         ) : null}
 
-        <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+        <Dialog
+          open={!!selectedEvent}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedEvent(null);
+              setIsEditDialogOpen(false);
+            }
+          }}
+        >
           <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle>{selectedEvent?.title}</DialogTitle>
@@ -690,8 +801,21 @@ export default function CalendarPage() {
                 </div>
               )}
             </div>
+            <div className="border-t pt-4 flex justify-end">
+              <Button onClick={() => setIsEditDialogOpen(true)} disabled={!selectedEvent}>
+                일정 수정
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
+
+        <EditEventDialog
+          event={isEditDialogOpen ? selectedEvent : null}
+          onSave={handleEditSave}
+          onDelete={handleDeleteEvent}
+          onCancel={() => setIsEditDialogOpen(false)}
+        />
+
       </main>
     </div>
   );
