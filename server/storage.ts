@@ -64,6 +64,17 @@ export interface IStorage {
   addCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
   getCalendarEvents(): Promise<CalendarEvent[]>;
   getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]>;
+  updateCalendarEvent(
+    id: number,
+    updates: {
+      title?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+      location?: string | null;
+      description?: string | null;
+      emailId?: number | null;
+    }
+  ): Promise<CalendarEvent | undefined>;
   
   getAppSetting(key: string): Promise<string | null>;
   setAppSetting(key: string, value: string): Promise<void>;
@@ -216,6 +227,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(conversations).orderBy(desc(conversations.updatedAt));
   }
 
+
   async addMessage(msg: InsertMessage): Promise<Message> {
     const [inserted] = await db.insert(messages).values(msg).returning();
     await db.update(conversations)
@@ -243,6 +255,36 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(calendarEvents)
       .where(eq(calendarEvents.emailId, emailId))
       .orderBy(desc(calendarEvents.createdAt));
+  }
+
+  async updateCalendarEvent(
+    id: number,
+    updates: {
+      title?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+      location?: string | null;
+      description?: string | null;
+      emailId?: number | null;
+    }
+  ): Promise<CalendarEvent | undefined> {
+    const next: Record<string, string | number | null> = {};
+
+    if ("title" in updates) next.title = updates.title ?? null;
+    if ("startDate" in updates) next.startDate = updates.startDate ?? null;
+    if ("endDate" in updates) next.endDate = updates.endDate ?? null;
+    if ("location" in updates) next.location = updates.location ?? null;
+    if ("description" in updates) next.description = updates.description ?? null;
+    if ("emailId" in updates) next.emailId = updates.emailId ?? null;
+
+    if (Object.keys(next).length === 0) return await this.getCalendarEvents().then(events => events.find(e => e.id === id));
+
+    const [updated] = await db
+      .update(calendarEvents)
+      .set(next)
+      .where(eq(calendarEvents.id, id))
+      .returning();
+    return updated;
   }
 
   async insertEmailsAndGetIds(emailsToInsert: InsertEmail[]): Promise<Email[]> {

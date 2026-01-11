@@ -555,6 +555,75 @@ export class LocalSQLiteStorage implements IStorage {
     }));
   }
 
+  async updateCalendarEvent(
+    id: number,
+    updates: {
+      title?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+      location?: string | null;
+      description?: string | null;
+      emailId?: number | null;
+    }
+  ): Promise<CalendarEvent | undefined> {
+    const fields: string[] = [];
+    const values: Array<string | number | null> = [];
+
+    if ("title" in updates) {
+      fields.push("title = ?");
+      values.push(updates.title ?? null);
+    }
+    if ("startDate" in updates) {
+      fields.push("start_date = ?");
+      values.push(updates.startDate ?? null);
+    }
+    if ("endDate" in updates) {
+      fields.push("end_date = ?");
+      values.push(updates.endDate ?? null);
+    }
+    if ("location" in updates) {
+      fields.push("location = ?");
+      values.push(updates.location ?? null);
+    }
+    if ("description" in updates) {
+      fields.push("description = ?");
+      values.push(updates.description ?? null);
+    }
+    if ("emailId" in updates) {
+      fields.push("email_id = ?");
+      values.push(updates.emailId ?? null);
+    }
+
+    if (fields.length === 0) {
+      const row = this.db.prepare('SELECT * FROM calendar_events WHERE id = ?').get(id) as any;
+      if (!row) return undefined;
+      return {
+        id: row.id,
+        emailId: row.email_id,
+        title: row.title,
+        startDate: row.start_date,
+        endDate: row.end_date,
+        location: row.location,
+        description: row.description,
+        createdAt: new Date(row.created_at),
+      };
+    }
+
+    this.db.prepare(`UPDATE calendar_events SET ${fields.join(", ")} WHERE id = ?`).run(...values, id);
+    const row = this.db.prepare('SELECT * FROM calendar_events WHERE id = ?').get(id) as any;
+    if (!row) return undefined;
+    return {
+      id: row.id,
+      emailId: row.email_id,
+      title: row.title,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      location: row.location,
+      description: row.description,
+      createdAt: new Date(row.created_at),
+    };
+  }
+
   async getCalendarEventsByEmailId(emailId: number): Promise<CalendarEvent[]> {
     const rows = this.db.prepare('SELECT * FROM calendar_events WHERE email_id = ? ORDER BY created_at DESC').all(emailId) as Array<{ id: number; email_id: number | null; title: string; start_date: string; end_date: string | null; location: string | null; description: string | null; created_at: string }>;
     return rows.map(row => ({

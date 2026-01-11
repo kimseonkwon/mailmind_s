@@ -241,8 +241,10 @@ export default function InboxPage() {
 
 절대 규칙:
 - 한국어만 사용
-- 영어, 한자, 일본어, 베트남어, 태국어 등 다른 언어/문자 사용 금지
+- 영어 알파벳, 한자, 일본어, 베트남어, 태국어 등 다른 언어/문자 사용 금지
 - 숫자/날짜 표기는 한국어 문장 안에서만 사용
+- 외래어/영문 단어는 반드시 한국어 표현으로 바꿔서 작성
+- "dear", "regards" 같은 영문 인사 금지
 
 요구사항:
 - 정중한 비즈니스 톤
@@ -272,7 +274,8 @@ export default function InboxPage() {
 내용:
 ${email.body}`;
 
-  const generateDraft = async (email: Email) => {
+  const generateDraft = async (email: Email, force = false) => {
+    if (!force && draftByEmailId[email.id]) return;
     setDraftLoadingId(email.id);
     setDraftErrorByEmailId((prev) => ({ ...prev, [email.id]: "" }));
     try {
@@ -720,7 +723,7 @@ ${email.body}`;
                         </div>
                         <Button
                           variant="outline"
-                          onClick={() => generateDraft(selectedEmail)}
+                          onClick={() => generateDraft(selectedEmail, true)}
                           disabled={draftLoadingId === selectedEmail.id}
                         >
                           {draftLoadingId === selectedEmail.id ? (

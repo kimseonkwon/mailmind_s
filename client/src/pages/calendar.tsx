@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ import {
 import type { CalendarEvent, Email } from "@shared/schema";
 
 type CalendarView = "month" | "week" | "day";
+type DisplayMode = "calendar" | "list";
 
 type EventWithMeta = CalendarEvent & {
   start: Date | null;
@@ -213,6 +214,7 @@ function EventCard({
 export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventWithMeta | null>(null);
   const [view, setView] = useState<CalendarView>("month");
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("calendar");
   const [activeDate, setActiveDate] = useState(() => new Date());
 
   const { data: events, isLoading } = useQuery<CalendarEvent[]>({
@@ -327,14 +329,14 @@ export default function CalendarPage() {
               <div>
                 <h1 className="text-xl font-bold tracking-tight">일정</h1>
                 <p className="text-xs text-muted-foreground">
-                  이메일에서 추출된 일정 목록
+                  이메일에서 추출한 일정 목록
                 </p>
               </div>
             </div>
             {events && (
               <Badge variant="outline" className="gap-1">
                 <CalendarIcon className="h-3 w-3" />
-                {events.length}건 일정
+                총 {events.length}건
               </Badge>
             )}
           </div>
@@ -342,196 +344,213 @@ export default function CalendarPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" onClick={handlePrev}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                  <p className="text-sm text-muted-foreground">캘린더</p>
-                  <h2 className="text-lg font-semibold">{calendarTitle}</h2>
-                </div>
-                <Button variant="outline" size="icon" onClick={handleNext}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button variant="secondary" onClick={handleToday}>
-                  오늘
-                </Button>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1 rounded-full bg-muted p-1">
-                  {VIEW_OPTIONS.map((option) => (
-                    <Button
-                      key={option.id}
-                      size="sm"
-                      variant={view === option.id ? "default" : "ghost"}
-                      onClick={() => setView(option.id)}
-                    >
-                      {option.label}
-                    </Button>
-                  ))}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  {Object.values(CLASSIFICATION_META).map((meta) => (
-                    <Badge
-                      key={meta.label}
-                      variant="outline"
-                      className={`gap-2 ${meta.badge}`}
-                    >
-                      <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
-                      {meta.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-full bg-muted p-1">
+            <Button
+              size="sm"
+              variant={displayMode === "calendar" ? "default" : "ghost"}
+              onClick={() => setDisplayMode("calendar")}
+            >
+              캘린더
+            </Button>
+            <Button
+              size="sm"
+              variant={displayMode === "list" ? "default" : "ghost"}
+              onClick={() => setDisplayMode("list")}
+            >
+              목록
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {Object.values(CLASSIFICATION_META).map((meta) => (
+              <Badge key={meta.label} variant="outline" className={`gap-2 ${meta.badge}`}>
+                <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
+                {meta.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
 
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-40 w-full" />
+        {displayMode === "calendar" && (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" size="icon" onClick={handlePrev}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div>
+                    <p className="text-sm text-muted-foreground">캘린더</p>
+                    <h2 className="text-lg font-semibold">{calendarTitle}</h2>
+                  </div>
+                  <Button variant="outline" size="icon" onClick={handleNext}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button variant="secondary" onClick={handleToday}>
+                    오늘
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 rounded-full bg-muted p-1">
+                    {VIEW_OPTIONS.map((option) => (
+                      <Button
+                        key={option.id}
+                        size="sm"
+                        variant={view === option.id ? "default" : "ghost"}
+                        onClick={() => setView(option.id)}
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <>
-                {view === "month" && (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
-                      {WEEKDAY_LABELS.map((label) => (
-                        <div key={label} className="text-center">
-                          {label}
-                        </div>
-                      ))}
+
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-6 w-1/3" />
+                  <Skeleton className="h-40 w-full" />
+                </div>
+              ) : (
+                <>
+                  {view === "month" && (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-7 gap-2 text-xs text-muted-foreground">
+                        {WEEKDAY_LABELS.map((label) => (
+                          <div key={label} className="text-center">
+                            {label}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-7 gap-2">
+                        {monthDays.days.map((day) => {
+                          const key = getDayKey(day);
+                          const dayEvents = eventsByDay.get(key) || [];
+                          const isOutside = !isSameMonth(day, monthDays.monthStart);
+                          const isSelected = isSameDay(day, activeDate);
+
+                          return (
+                            <div
+                              key={key}
+                              className={`min-h-[120px] rounded-lg border p-2 ${
+                                isOutside ? "bg-muted/30 text-muted-foreground" : "bg-background"
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
+                                  isSelected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "hover:bg-muted"
+                                }`}
+                                onClick={() => setActiveDate(day)}
+                              >
+                                {format(day, "d")}
+                              </button>
+                              <div className="mt-2 space-y-1">
+                                {dayEvents.slice(0, 3).map((event) => (
+                                  <EventChip
+                                    key={event.id}
+                                    event={event}
+                                    compact
+                                    onClick={() => setSelectedEvent(event)}
+                                  />
+                                ))}
+                                {dayEvents.length > 3 && (
+                                  <button
+                                    type="button"
+                                    className="text-[11px] text-muted-foreground hover:underline"
+                                    onClick={() => setActiveDate(day)}
+                                  >
+                                    +{dayEvents.length - 3} 더보기
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-7 gap-2">
-                      {monthDays.days.map((day) => {
+                  )}
+
+                  {view === "week" && (
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
+                      {weekDays.map((day) => {
                         const key = getDayKey(day);
                         const dayEvents = eventsByDay.get(key) || [];
-                        const isOutside = !isSameMonth(day, monthDays.monthStart);
                         const isSelected = isSameDay(day, activeDate);
 
                         return (
                           <div
                             key={key}
-                            className={`min-h-[120px] rounded-lg border p-2 ${
-                              isOutside ? "bg-muted/30 text-muted-foreground" : "bg-background"
+                            className={`rounded-lg border p-3 ${
+                              isSelected ? "border-primary/50 bg-primary/5" : "bg-background"
                             }`}
                           >
                             <button
                               type="button"
-                              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
-                                isSelected
-                                  ? "bg-primary text-primary-foreground"
-                                  : "hover:bg-muted"
-                              }`}
+                              className="flex w-full items-center justify-between text-sm font-semibold"
                               onClick={() => setActiveDate(day)}
                             >
-                              {format(day, "d")}
+                              <span>{format(day, "M/d")}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {WEEKDAY_LABELS[day.getDay() === 0 ? 6 : day.getDay() - 1]}
+                              </span>
                             </button>
-                            <div className="mt-2 space-y-1">
-                              {dayEvents.slice(0, 3).map((event) => (
+                            <div className="mt-3 space-y-2">
+                              {dayEvents.length === 0 && (
+                                <p className="text-xs text-muted-foreground">일정 없음</p>
+                              )}
+                              {dayEvents.map((event) => (
                                 <EventChip
                                   key={event.id}
                                   event={event}
-                                  compact
+                                  showTime
                                   onClick={() => setSelectedEvent(event)}
                                 />
                               ))}
-                              {dayEvents.length > 3 && (
-                                <button
-                                  type="button"
-                                  className="text-[11px] text-muted-foreground hover:underline"
-                                  onClick={() => setActiveDate(day)}
-                                >
-                                  +{dayEvents.length - 3}건 더보기
-                                </button>
-                              )}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {view === "week" && (
-                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
-                    {weekDays.map((day) => {
-                      const key = getDayKey(day);
-                      const dayEvents = eventsByDay.get(key) || [];
-                      const isSelected = isSameDay(day, activeDate);
-
-                      return (
-                        <div
-                          key={key}
-                          className={`rounded-lg border p-3 ${
-                            isSelected ? "border-primary/50 bg-primary/5" : "bg-background"
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            className="flex w-full items-center justify-between text-sm font-semibold"
-                            onClick={() => setActiveDate(day)}
-                          >
-                            <span>{format(day, "M/d")}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {WEEKDAY_LABELS[day.getDay() === 0 ? 6 : day.getDay() - 1]}
-                            </span>
-                          </button>
-                          <div className="mt-3 space-y-2">
-                            {dayEvents.length === 0 && (
-                              <p className="text-xs text-muted-foreground">일정 없음</p>
-                            )}
-                            {dayEvents.map((event) => (
-                              <EventChip
-                                key={event.id}
-                                event={event}
-                                showTime
-                                onClick={() => setSelectedEvent(event)}
-                              />
-                            ))}
-                          </div>
+                  {view === "day" && (
+                    <div className="rounded-lg border p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground">선택한 날짜</p>
+                          <h3 className="text-lg font-semibold">
+                            {format(activeDate, "yyyy년 M월 d일")}
+                          </h3>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {view === "day" && (
-                  <div className="rounded-lg border p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">선택한 날짜</p>
-                        <h3 className="text-lg font-semibold">
-                          {format(activeDate, "yyyy년 M월 d일")}
-                        </h3>
+                        <Badge variant="outline">{dayEvents.length}건</Badge>
                       </div>
-                      <Badge variant="outline">{dayEvents.length}건</Badge>
+                      <div className="mt-4 space-y-3">
+                        {dayEvents.length === 0 && (
+                          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                            일정이 없습니다.
+                          </div>
+                        )}
+                        {dayEvents.map((event) => (
+                          <EventChip
+                            key={event.id}
+                            event={event}
+                            showTime
+                            onClick={() => setSelectedEvent(event)}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="mt-4 space-y-3">
-                      {dayEvents.length === 0 && (
-                        <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                          일정이 없습니다.
-                        </div>
-                      )}
-                      {dayEvents.map((event) => (
-                        <EventChip
-                          key={event.id}
-                          event={event}
-                          showTime
-                          onClick={() => setSelectedEvent(event)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        {isLoading ? (
+        {displayMode === "list" && isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Card key={i}>
@@ -543,7 +562,7 @@ export default function CalendarPage() {
               </Card>
             ))}
           </div>
-        ) : eventsWithMeta.length === 0 ? (
+        ) : displayMode === "list" && eventsWithMeta.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="rounded-full bg-muted p-4 mb-4">
@@ -551,12 +570,12 @@ export default function CalendarPage() {
               </div>
               <h3 className="font-semibold mb-2">일정이 없습니다</h3>
               <p className="text-sm text-muted-foreground text-center max-w-md">
-                메일 검수 결과에서 "일정 추출" 버튼을 눌러 이메일의 일정을
+                메일 검토 결과에서 "일정 추출" 버튼을 눌러 이메일의 일정을
                 추출해보세요.
               </p>
             </CardContent>
           </Card>
-        ) : (
+        ) : displayMode === "list" ? (
           <div className="space-y-4" data-testid="events-list">
             {eventsWithMeta.map((event) => (
               <EventCard
@@ -566,7 +585,7 @@ export default function CalendarPage() {
               />
             ))}
           </div>
-        )}
+        ) : null}
 
         <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
           <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col">

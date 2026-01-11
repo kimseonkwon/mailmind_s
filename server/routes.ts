@@ -453,6 +453,76 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/events", async (req: Request, res: Response) => {
+    try {
+      const { title, startDate, endDate, location, description, emailId } = req.body as {
+        title?: string;
+        startDate?: string;
+        endDate?: string | null;
+        location?: string | null;
+        description?: string | null;
+        emailId?: number | null;
+      };
+
+      if (!title || !startDate) {
+        res.status(400).json({ error: "Missing title or startDate" });
+        return;
+      }
+
+      const event = await storage.addCalendarEvent({
+        title,
+        startDate,
+        endDate: endDate || null,
+        location: location || null,
+        description: description || null,
+        emailId: emailId ?? null,
+      });
+
+      res.json(event);
+    } catch (error) {
+      console.error("Create event error:", error);
+      res.status(500).json({ error: "Failed to create event" });
+    }
+  });
+
+  app.post("/api/events/:id/update", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      if (isNaN(eventId)) {
+        res.status(400).json({ error: "Invalid event ID" });
+        return;
+      }
+
+      const { title, startDate, endDate, location, description, emailId } = req.body as {
+        title?: string | null;
+        startDate?: string | null;
+        endDate?: string | null;
+        location?: string | null;
+        description?: string | null;
+        emailId?: number | null;
+      };
+
+      const updated = await storage.updateCalendarEvent(eventId, {
+        title,
+        startDate,
+        endDate,
+        location,
+        description,
+        emailId,
+      });
+
+      if (!updated) {
+        res.status(404).json({ error: "Event not found" });
+        return;
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Update event error:", error);
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
   app.get("/api/events", async (_req: Request, res: Response) => {
     try {
       const events = await storage.getCalendarEvents();
