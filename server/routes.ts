@@ -26,6 +26,7 @@ function chunkString(str: string, size: number = 500, overlap: number = 100): st
   return chunks;
 }
 
+//3
 export async function registerRoutes(app: Express): Promise<Server> {
   // 1. 통계 API
   app.get("/api/stats", async (_req, res) => {
