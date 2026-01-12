@@ -6,14 +6,13 @@ import {
   classifyEmail, 
   chatWithEmailContext,
   checkOllamaConnection,
-  generateEmbedding // [신규] 임베딩 함수
+  generateEmbedding 
 } from "./ollama";
 import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// [신규] 텍스트 청킹 함수 (약 500자 단위, 오버랩 100자)
-// 텍스트를 의미 있는 단위로 잘라서 저장해야 검색 정확도가 올라갑니다.
+// 텍스트 청킹 함수
 function chunkString(str: string, size: number = 500, overlap: number = 100): string[] {
   if (!str) return [];
   const chunks: string[] = [];
@@ -53,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(messages);
   });
 
-  // 2. 이메일 데이터 가져오기 (RAG 데이터 생성 포함)
+  // 2. 이메일 데이터 가져오기
   app.post("/api/import", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ ok: false, message: "파일 없음" });
 
@@ -69,7 +68,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isProcessed: false 
       }));
 
-      // 1-1. 메일 원본 DB 저장
       const insertedEmails = await storage.insertEmailsAndGetIds(emailsToInsert);
       
       res.json({
@@ -78,18 +76,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `${insertedEmails.length}개 저장 완료. 백그라운드에서 AI 분석 및 벡터 임베딩이 시작됩니다.`
       });
 
-      // 1-2. 백그라운드 작업: 청킹 & 임베딩
+      // 백그라운드 작업: 청킹 & 임베딩
       (async () => {
         for (const email of insertedEmails) {
           try {
-            // (1) 분류 (기존 로직)
             const cls = await classifyEmail(email.subject, email.body, email.sender);
             await storage.updateEmailClassification(email.id, cls.classification, cls.confidence);
 
-            // (2) 청킹 및 임베딩 생성 (RAG 핵심)
-            // 제목과 발신자 정보도 포함하여 검색 품질 향상
             const fullContent = `Subject: ${email.subject}\nSender: ${email.sender}\nDate: ${email.date}\n\n${email.body}`;
-            const textChunks = chunkString(fullContent, 500, 100); // 500자 단위 분할, 100자 겹침
+            const textChunks = chunkString(fullContent, 500, 100);
             
             const chunksToSave = [];
             for (const text of textChunks) {
@@ -127,8 +122,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // (1) 사용자 질문 임베딩
       const queryVector = await generateEmbedding(message);
 
-      // (2) 벡터 DB 검색 (상위 3개, 유사도 0.3 이상)
-      const relevantChunks = await storage.searchRagChunks(queryVector, 3);
+      // (2) 벡터 DB 검색 
+      // [수정] topK를 10으로 늘려 정답이 포함될 확률을 높입니다.
+      const relevantChunks = await storage.searchRagChunks(queryVector, 10);
       
       console.log(`[RAG] 질문("${message}")에 대해 ${relevantChunks.length}개의 관련 청크를 찾았습니다.`);
 

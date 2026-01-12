@@ -38,11 +38,9 @@ export interface IStorage {
   getAllEmails(limit?: number): Promise<Email[]>;
   updateEmailClassification(id: number, classification: string, confidence: string): Promise<void>;
   
-  // RAG 관련
   saveRagChunks(chunks: InsertRagChunk[]): Promise<void>;
   searchRagChunks(queryEmbedding: number[], topK: number): Promise<RagSearchResult[]>;
   
-  // 기존 검색 및 기타
   searchEmails(query: string, topK: number): Promise<SearchResult[]>;
   createConversation(conv: InsertConversation): Promise<Conversation>;
   addMessage(msg: InsertMessage): Promise<Message>;
@@ -59,7 +57,6 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // [User]
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -73,7 +70,6 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  // [Email]
   async insertEmailsAndGetIds(emailsToInsert: InsertEmail[]): Promise<Email[]> {
     if (emailsToInsert.length === 0) return [];
     const inserted = await db.insert(emails).values(emailsToInsert).returning();
@@ -95,17 +91,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(emails.id, id));
   }
 
-  // [RAG] 청크 저장
   async saveRagChunks(chunks: InsertRagChunk[]): Promise<void> {
     if (chunks.length === 0) return;
     await db.insert(ragChunks).values(chunks);
   }
 
-  // [RAG] 벡터 검색 (에러 수정됨)
+  // [수정] 임계값 완화 및 타입 에러 수정
   async searchRagChunks(queryEmbedding: number[], topK: number = 3): Promise<RagSearchResult[]> {
-    // 1 - 거리 = 유사도
     const similarity = sql<number>`1 - (${cosineDistance(ragChunks.embedding, queryEmbedding)})`;
-    const SIMILARITY_THRESHOLD = 0.3;
+    
+    // 임계값을 0.3 -> 0.25로 낮춤 (더 많은 후보군 확보)
+    const SIMILARITY_THRESHOLD = 0.25;
 
     const results = await db
       .select({
@@ -120,7 +116,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(similarity))
       .limit(topK);
 
-    // [수정 포인트] map 내부 변수 r에 any 타입을 지정하거나, 명시적으로 처리하여 에러 방지
+    // [수정] r: any 타입 명시로 컴파일 에러 해결
     return results.map((r: any) => ({
       id: r.id,
       mailId: r.mailId || 0,
@@ -130,7 +126,6 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  // [기존 검색] 키워드 검색
   async searchEmails(query: string, topK: number): Promise<SearchResult[]> {
     const searchPattern = `%${query}%`;
     const results = await db.select().from(emails).where(
@@ -148,7 +143,6 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  // [Chat & System]
   async createConversation(conv: InsertConversation): Promise<Conversation> {
     const [c] = await db.insert(conversations).values(conv).returning();
     return c;

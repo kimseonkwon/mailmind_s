@@ -17,17 +17,16 @@ interface OllamaResponse {
   done: boolean;
 }
 
-// [신규] 텍스트 임베딩 생성 함수 (nomic-embed-text 사용)
+// 임베딩 생성 함수
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    // 줄바꿈을 공백으로 치환하여 임베딩 품질 향상
     const cleanText = text.replace(/\n/g, " ");
     
     const response = await fetch(`${OLLAMA_BASE_URL}/api/embeddings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "nomic-embed-text", // 사용자 요청 모델
+        model: "nomic-embed-text",
         prompt: cleanText,
       }),
     });
@@ -37,16 +36,17 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     }
 
     const data = await response.json();
-    return data.embedding; // vector array 반환
+    return data.embedding; 
   } catch (error) {
     console.error("Embedding generation error:", error);
     return [];
   }
 }
 
+// 기본 채팅 함수
 export async function chatWithOllama(
   messages: OllamaMessage[],
-  model: string = "llama3" // 기본 대화 모델
+  model: string = "llama3" 
 ): Promise<string> {
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
@@ -57,7 +57,7 @@ export async function chatWithOllama(
         messages,
         stream: false,
         options: {
-          temperature: 0.1, // RAG의 정확성을 위해 온도를 낮춤
+          temperature: 0.1, // 사실 기반 답변을 위해 창의성 억제
         }
       }),
     });
@@ -74,81 +74,59 @@ export async function chatWithOllama(
   }
 }
 
-// [핵심 수정] RAG 프롬프트가 적용된 대화 함수
+// [핵심 수정] RAG 프롬프트가 강력하게 적용된 함수
 export async function chatWithEmailContext(
   userQuestion: string,
   retrievedChunks: RagSearchResult[]
 ): Promise<string> {
   
-  // 1. 참고자료 텍스트 포맷팅 (요청하신 구조대로)
+  // 1. 참고자료 포맷팅 (날짜 정보 추가, 가독성 개선)
   const contextText = retrievedChunks.map((chunk, index) => `
-${index + 1}.
-id: chunk-${chunk.id}
-mailId: ${chunk.mailId}
-subject: ${chunk.subject}
-score: ${chunk.score.toFixed(2)}
-snippet: "${chunk.content.replace(/"/g, "'")}"
+[[자료 ${index + 1}]]
+- Mail ID: ${chunk.mailId}
+- 제목: ${chunk.subject}
+- 내용: "${chunk.content.replace(/\n/g, " ").replace(/"/g, "'")}"
 `).join("\n");
 
-  // 2. 시스템 프롬프트 (요청하신 내용 그대로 적용)
+  // 2. 시스템 프롬프트 (한국어 강제 및 출처 표기 강화)
   const SYSTEM_PROMPT = `
-당신은 이메일 기반 지식 검색 시스템(RAG)의 응답 생성기입니다.
-아래의 규칙을 반드시 따르십시오.
+You are a highly intelligent secretary for a Korean user. 
+Your task is to answer the user's question based *strictly* on the provided [참고자료] (Reference Materials).
 
-[역할]
-- 당신은 사용자의 질문에 대해, 제공된 "참고자료"에 근거하여 답변합니다.
-- 참고자료는 벡터 검색과 MMR을 통해 선별된 신뢰 가능한 정보입니다.
+### 🚨 CRITICAL RULES (MUST FOLLOW)
+1. **LANGUAGE**: You MUST answer in **Korean (한국어)**. Never use English in the final output.
+2. **EVIDENCE**: When you state a fact, append the source mail ID.
+   - Format: "사실 내용 (메일 ID: 12)"
+3. **NO HALLUCINATION**: If the answer is not in the [참고자료], say "제공된 메일 내용에서 관련 정보를 찾을 수 없습니다."
+4. **VERIFICATION**: Check if the reference actually answers the specific question. If the topic matches but the specific detail is missing, say so.
 
-[핵심 원칙 – 반드시 지킬 것]
-1. 참고자료에 명시적으로 포함된 정보만 사용하여 답변하십시오.
-2. 참고자료에 질문과 관련된 정보가 없거나, 근거가 불충분하면
-   반드시 다음 문장으로만 답변하십시오:
-   "관련 정보가 없습니다. 참고자료에 해당 정보가 없습니다."
-3. 절대로 추측, 일반 상식, 외부 지식을 사용하지 마십시오.
-4. 참고자료에 없는 내용을 보완하거나 확대 해석하지 마십시오.
+### 답변 스타일 가이드
+- 비즈니스 매너를 갖춘 정중한 한국어(해요체)를 사용하세요.
+- 불필요한 서론("참고자료에 따르면...")을 줄이고, 핵심 결론부터 말하세요.
+- 여러 메일의 정보가 섞여있다면, 항목별로 나누어 정리하세요.
 
-[참고자료 사용 규칙]
-- 각 참고자료에는 다음 메타 정보가 포함됩니다:
-  - id: 청크 ID
-  - mailId: 원본 이메일 ID
-  - subject: 이메일 제목
-  - score: 질문과의 유사도 점수
-  - snippet: 이메일에서 발췌된 내용
-- 답변에서 특정 사실을 언급할 경우,
-  해당 사실이 어떤 참고자료(id 또는 mailId)에 근거했는지
-  자연스럽게 드러나도록 작성하십시오.
-  (예: “mailId=12의 이메일에 따르면 …”)
-
-[출처 표기 지침]
-- 직접적인 인용은 필요하지 않지만,
-  “어느 이메일에서 나온 정보인지”는 명확히 알 수 있어야 합니다.
-- 여러 참고자료를 종합한 경우,
-  “여러 이메일을 종합하면 …”과 같이 표현하십시오.
-
-[언어 및 형식]
-- 답변은 반드시 한국어로 작성하십시오.
-- 간결하되, 의미가 모호해지지 않도록 명확히 설명하십시오.
-- 목록이나 단계가 필요한 경우에만 bullet point를 사용하십시오.
-
-[대화 맥락]
-- 이전 대화 히스토리는 참고용일 뿐이며,
-  현재 질문에 직접적으로 관련되지 않으면 사용하지 마십시오.
-- 최종적으로 답변해야 할 질문은
-  가장 마지막 user 메시지입니다.
-
-[중요]
-- 당신의 목표는 “그럴듯한 답변”이 아니라
-  “근거가 있는 답변 또는 명확한 거절”입니다.
+### 예시
+사용자: "다음 주 회의 일정 알려줘"
+AI: "다음 주 회의 일정은 다음과 같습니다.
+- **경영 전략 회의**: 10월 5일 오후 2시, 대회의실 (메일 ID: 5)
+- **개발 팀 미팅**: 10월 7일 오전 10시 (메일 ID: 8)"
 `;
 
-  // 3. 메시지 구조 생성
+  // 3. 메시지 구성
   const messages: OllamaMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { 
-      role: "system", 
-      content: `[참고자료]\n${contextText || "참고할 만한 자료가 없습니다."}` 
-    },
-    { role: "user", content: userQuestion }
+      role: "user", 
+      content: `
+[참고자료]
+${contextText || "관련된 메일이 없습니다."}
+
+[질문]
+${userQuestion}
+
+[지침]
+위 참고자료를 바탕으로 한국어로 답변하세요. 각 정보의 출처(메일 ID)를 반드시 표기하세요.` 
+    }
   ];
 
   return chatWithOllama(messages);
@@ -163,6 +141,7 @@ export async function checkOllamaConnection(): Promise<boolean> {
   }
 }
 
+// 기존 분류 함수 유지
 export async function classifyEmail(
   subject: string,
   body: string,
@@ -173,7 +152,7 @@ export async function classifyEmail(
 - reply_needed: 회신 필요
 - urgent_reply: 긴급 회신
 - meeting: 회의
-JSON 응답 예시: {"classification": "meeting", "confidence": "high"}`;
+JSON 응답: {"classification": "meeting", "confidence": "high"}`;
 
   const userPrompt = `발신자: ${sender}\n제목: ${subject}\n내용: ${body.substring(0, 500)}`;
 
