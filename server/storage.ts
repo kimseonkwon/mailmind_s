@@ -96,11 +96,11 @@ export class DatabaseStorage implements IStorage {
     await db.insert(ragChunks).values(chunks);
   }
 
-  // [수정] 임계값 완화 및 타입 에러 수정
+  // [수정 완료] r: any, i: number 로 모든 타입 명시
   async searchRagChunks(queryEmbedding: number[], topK: number = 3): Promise<RagSearchResult[]> {
     const similarity = sql<number>`1 - (${cosineDistance(ragChunks.embedding, queryEmbedding)})`;
     
-    // 임계값을 0.3 -> 0.25로 낮춤 (더 많은 후보군 확보)
+    // 임계값 0.25
     const SIMILARITY_THRESHOLD = 0.25;
 
     const results = await db
@@ -116,7 +116,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(similarity))
       .limit(topK);
 
-    // [수정] r: any 타입 명시로 컴파일 에러 해결
+    // [디버깅 로그] 타입 에러 해결됨
+    if (results.length > 0) {
+      console.log("🔍 [RAG 검색 결과 Top 3 제목]:");
+      results.slice(0, 3).forEach((r: any, i: number) => console.log(`   ${i+1}. [${r.score.toFixed(2)}] ${r.subject}`));
+    } else {
+      console.log("⚠️ [RAG] 검색된 문서가 없습니다. (유사도 낮음)");
+    }
+
     return results.map((r: any) => ({
       id: r.id,
       mailId: r.mailId || 0,

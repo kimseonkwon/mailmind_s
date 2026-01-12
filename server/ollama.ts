@@ -17,11 +17,9 @@ interface OllamaResponse {
   done: boolean;
 }
 
-// 임베딩 생성 함수
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const cleanText = text.replace(/\n/g, " ");
-    
     const response = await fetch(`${OLLAMA_BASE_URL}/api/embeddings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,11 +28,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         prompt: cleanText,
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(`Embedding API error: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Embedding API error: ${response.status}`);
     const data = await response.json();
     return data.embedding; 
   } catch (error) {
@@ -43,7 +37,6 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 }
 
-// 기본 채팅 함수
 export async function chatWithOllama(
   messages: OllamaMessage[],
   model: string = "llama3" 
@@ -57,81 +50,69 @@ export async function chatWithOllama(
         messages,
         stream: false,
         options: {
-          temperature: 0.1, // 사실 기반 답변을 위해 창의성 억제
+          temperature: 0.2, // 0.0은 너무 경직되어 문서를 놓칠 수 있어 약간 높임
+          num_predict: 500,
         }
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Ollama API error: ${response.status}`);
     const data: OllamaResponse = await response.json();
     return data.message.content;
   } catch (error) {
     console.error("Ollama chat error:", error);
-    throw new Error("AI 서버에 연결할 수 없습니다. Ollama가 실행 중인지 확인해주세요.");
+    throw new Error("AI 서버에 연결할 수 없습니다.");
   }
 }
 
-// [핵심 수정] RAG 프롬프트가 강력하게 적용된 함수
+// [핵심 수정] 심플하고 강력한 RAG 프롬프트
 export async function chatWithEmailContext(
   userQuestion: string,
   retrievedChunks: RagSearchResult[]
 ): Promise<string> {
   
-  // 1. 참고자료 포맷팅 (날짜 정보 추가, 가독성 개선)
-  const contextText = retrievedChunks.map((chunk, index) => `
-[[자료 ${index + 1}]]
-- Mail ID: ${chunk.mailId}
-- 제목: ${chunk.subject}
-- 내용: "${chunk.content.replace(/\n/g, " ").replace(/"/g, "'")}"
-`).join("\n");
+  // 자료 포맷팅: 가독성 최우선
+  const contextText = retrievedChunks.map((chunk, index) => 
+    `문서번호: ${index + 1}
+메일ID: ${chunk.mailId}
+제목: ${chunk.subject}
+내용: ${chunk.content.replace(/\n/g, " ")}`
+  ).join("\n\n----------------\n\n");
 
-  // 2. 시스템 프롬프트 (한국어 강제 및 출처 표기 강화)
+  // 복잡한 역할극 대신 직관적인 지시 사용
   const SYSTEM_PROMPT = `
-You are a highly intelligent secretary for a Korean user. 
-Your task is to answer the user's question based *strictly* on the provided [참고자료] (Reference Materials).
+당신은 한국어로 대답하는 AI 비서입니다.
+아래 제공되는 [메일 목록]을 읽고 사용자의 질문에 답변하세요.
 
-### 🚨 CRITICAL RULES (MUST FOLLOW)
-1. **LANGUAGE**: You MUST answer in **Korean (한국어)**. Never use English in the final output.
-2. **EVIDENCE**: When you state a fact, append the source mail ID.
-   - Format: "사실 내용 (메일 ID: 12)"
-3. **NO HALLUCINATION**: If the answer is not in the [참고자료], say "제공된 메일 내용에서 관련 정보를 찾을 수 없습니다."
-4. **VERIFICATION**: Check if the reference actually answers the specific question. If the topic matches but the specific detail is missing, say so.
-
-### 답변 스타일 가이드
-- 비즈니스 매너를 갖춘 정중한 한국어(해요체)를 사용하세요.
-- 불필요한 서론("참고자료에 따르면...")을 줄이고, 핵심 결론부터 말하세요.
-- 여러 메일의 정보가 섞여있다면, 항목별로 나누어 정리하세요.
-
-### 예시
-사용자: "다음 주 회의 일정 알려줘"
-AI: "다음 주 회의 일정은 다음과 같습니다.
-- **경영 전략 회의**: 10월 5일 오후 2시, 대회의실 (메일 ID: 5)
-- **개발 팀 미팅**: 10월 7일 오전 10시 (메일 ID: 8)"
+[규칙]
+1. 반드시 **한국어**로 답변하세요. 영어는 사용하지 마세요.
+2. 질문과 관련된 내용이 메일 목록에 있다면 그 내용을 요약해서 알려주세요.
+3. 질문과 관련된 내용이 전혀 없다면 "관련 정보를 찾을 수 없습니다."라고 말하세요.
+4. 답변 끝에는 반드시 "(출처: 메일ID 숫자)"를 적어주세요.
 `;
 
-  // 3. 메시지 구성
-  const messages: OllamaMessage[] = [
-    { role: "system", content: SYSTEM_PROMPT },
-    { 
-      role: "user", 
-      content: `
-[참고자료]
-${contextText || "관련된 메일이 없습니다."}
+  // [중요] 한국어 강제화를 위해 User 메시지 마지막에 지시사항 추가
+  const userMessageContent = `
+[메일 목록]
+${contextText || "표시할 메일이 없습니다."}
 
 [질문]
-${userQuestion}
+"${userQuestion}"
 
-[지침]
-위 참고자료를 바탕으로 한국어로 답변하세요. 각 정보의 출처(메일 ID)를 반드시 표기하세요.` 
-    }
+[답변 작성 요령]
+- 위 [메일 목록]의 모든 내용을 꼼꼼히 확인하세요.
+- 질문의 핵심 단어(예: 진수식, 시운전, 용접, 회의)가 포함된 메일을 찾으세요.
+- 답변은 반드시 한국어로 작성하세요.
+`;
+
+  const messages: OllamaMessage[] = [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: userMessageContent }
   ];
 
   return chatWithOllama(messages);
 }
 
+// ... (나머지 checkOllamaConnection, classifyEmail 등은 기존 유지) ...
 export async function checkOllamaConnection(): Promise<boolean> {
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`);
@@ -141,33 +122,22 @@ export async function checkOllamaConnection(): Promise<boolean> {
   }
 }
 
-// 기존 분류 함수 유지
 export async function classifyEmail(
   subject: string,
   body: string,
   sender: string
 ): Promise<{ classification: string; confidence: string }> {
-  const systemPrompt = `당신은 이메일 분류 전문가입니다. 다음 카테고리 중 하나로 분류하세요:
-- reference: 단순 참조
-- reply_needed: 회신 필요
-- urgent_reply: 긴급 회신
-- meeting: 회의
-JSON 응답: {"classification": "meeting", "confidence": "high"}`;
-
-  const userPrompt = `발신자: ${sender}\n제목: ${subject}\n내용: ${body.substring(0, 500)}`;
-
+  const systemPrompt = `Classify into: reference, reply_needed, urgent_reply, meeting. Return JSON only.`;
+  const userPrompt = `Subject: ${subject}\nBody: ${body.substring(0, 500)}`;
   try {
     const response = await chatWithOllama([
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ]);
-
     const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
     return { classification: "reference", confidence: "low" };
-  } catch (error) {
+  } catch {
     return { classification: "reference", confidence: "low" };
   }
 }
